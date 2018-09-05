@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace Orleans.Providers.EntityFramework.Extensions
 {
-    public static class EfGrainStorageServiceCollectionExtensions
+    public static class GrainStorageServiceCollectionExtensions
     {
         public static IServiceCollection ConfigureGrainStorageOptions<TContext, TGrain, TGrainState>(
             this IServiceCollection services,

@@ -8,7 +8,7 @@ using Orleans.Storage;
 
 namespace Orleans.Providers.EntityFramework.Extensions
 {
-    public static class EfGrainStorageSiloHostBuilderExtensions
+    public static class GrainStorageSiloHostBuilderExtensions
     {
         public static ISiloHostBuilder AddEfGrainStorageAsDefault<TContext>(this ISiloHostBuilder builder)
             where TContext : DbContext

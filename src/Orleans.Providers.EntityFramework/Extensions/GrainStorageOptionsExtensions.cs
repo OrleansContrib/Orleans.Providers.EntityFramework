@@ -6,7 +6,7 @@ using Orleans.Runtime;
 
 namespace Orleans.Providers.EntityFramework.Extensions
 {
-    public static class EfGrainStorageOptionsExtensions
+    public static class GrainStorageOptionsExtensions
     {
         public static GrainStorageOptions<TContext, TGrainState> UseQuery<TContext, TGrainState>(
             this GrainStorageOptions<TContext, TGrainState> options,

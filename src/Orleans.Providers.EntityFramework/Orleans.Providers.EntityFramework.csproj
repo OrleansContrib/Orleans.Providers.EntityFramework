@@ -17,8 +17,8 @@
     <Description>An Entity Framework Core implementation of Orleans Grain Storage.</Description>
     <Summary>An Entity Framework Core implementation of Orleans Grain Storage.</Summary>
     <Copyright>MIT</Copyright>
-    <PackageProjectUrl>https://github.com/alirezajm/Orleans.Providers.EntityFramework</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/alirezajm/Orleans.Providers.EntityFramework</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/OrleansContrib/Orleans.Providers.EntityFramework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/OrleansContrib/Orleans.Providers.EntityFramework</RepositoryUrl>
     <PackageTags>Orleans, EntityFrameworkCore, StorageProvider</PackageTags>
   </PropertyGroup>
   

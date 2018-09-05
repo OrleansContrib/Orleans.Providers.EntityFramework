@@ -15,7 +15,7 @@ or
 ```Install-Package Orleans.Providers.EntityFramework```
 
 
-Add configure the storage provider using SiloHostBuilder:
+And configure the storage provider using SiloHostBuilder:
 
 ```
 ISiloHostBuilder builder = new SiloHostBuilder();
@@ -104,7 +104,7 @@ services
 
 ### Using custom persistance check
 
-When using Guids as primary keys you're mostly to add a cluster index that is auto incremented. 
+When using Guids as primary keys you're most likely to add a cluster index that is auto incremented. 
 That field can be used to check if the state is already inserted into the database or not:
 
 ```

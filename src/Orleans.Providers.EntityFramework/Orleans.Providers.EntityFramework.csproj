@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>0.9.0</VersionPrefix>
+    <Title>Orleans.Providers.EntityFramework</Title>
+    <Authors>alirezajm</Authors>
+    <Company></Company>
+    <Product />
+    <Description>An Entity Framework Core implementation of Orleans Grain Storage.</Description>
+    <Summary>An Entity Framework Core implementation of Orleans Grain Storage.</Summary>
+    <Copyright>MIT</Copyright>
+    <PackageProjectUrl>https://github.com/alirezajm/Orleans.Providers.EntityFramework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/alirezajm/Orleans.Providers.EntityFramework</RepositoryUrl>
+    <PackageTags>Orleans, EntityFrameworkCore, StorageProvider</PackageTags>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Orleans.Core" Version="2.0.3" />
+    <PackageReference Include="Microsoft.Orleans.Runtime.Abstractions" Version="2.0.0" />
+  </ItemGroup>
+
+</Project>
+

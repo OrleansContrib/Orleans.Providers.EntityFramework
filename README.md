@@ -60,6 +60,12 @@ public class Box {
 }
 ```
 
+_If you use conventions (as described, configuring GrainStorageConventionOptions) you're context should contain DbSets for your models._
+
+```
+public DbSet<Box> Boxes { get; set; }
+```
+
 ### Querying models using custom expressions
 To configure a special model you can do:
 

@@ -207,7 +207,7 @@ namespace Orleans.Providers.EntityFramework
             if (grainImplType == null)
                 throw new Exception($"Could not load \"{grainType}\" type. Try configuring grain options.");
 
-            Type optionsType = typeof(PostConfigureGrainStorageOptions<,,>).MakeGenericType(
+            Type optionsType = typeof(GrainStoragePostConfigureOptions<,,>).MakeGenericType(
                 typeof(TContext),
                 grainImplType,
                 typeof(TGrainState));

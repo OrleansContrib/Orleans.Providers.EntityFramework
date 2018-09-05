@@ -6,7 +6,7 @@ using Orleans.Providers.EntityFramework.Conventions;
 
 namespace Orleans.Providers.EntityFramework
 {
-    public class PostConfigureGrainStorageOptions<TContext, TGrain, TGrainState>
+    public class GrainStoragePostConfigureOptions<TContext, TGrain, TGrainState>
         : IPostConfigureOptions<GrainStorageOptions<TContext, TGrainState>>
         where TContext : DbContext
         where TGrain : Grain<TGrainState>
@@ -15,7 +15,7 @@ namespace Orleans.Providers.EntityFramework
         public IGrainStorageConvention<TContext, TGrainState> Convention { get; }
         public IGrainStorageConvention DefaultConvention { get; }
 
-        public PostConfigureGrainStorageOptions(IServiceProvider serviceProvider)
+        public GrainStoragePostConfigureOptions(IServiceProvider serviceProvider)
         {
             DefaultConvention =
                 (IGrainStorageConvention)serviceProvider.GetRequiredService(typeof(IGrainStorageConvention));

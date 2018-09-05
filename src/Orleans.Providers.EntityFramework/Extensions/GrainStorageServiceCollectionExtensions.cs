@@ -16,7 +16,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
         {
             return services
                 .AddSingleton<IPostConfigureOptions<GrainStorageOptions<TContext, TGrainState>>,
-                    PostConfigureGrainStorageOptions<TContext, TGrain, TGrainState>>()
+                    GrainStoragePostConfigureOptions<TContext, TGrain, TGrainState>>()
                 .Configure<GrainStorageOptions<TContext, TGrainState>>(typeof(TGrain).FullName, options =>
                 {
                     configureOptions?.Invoke(options);

@@ -11,8 +11,7 @@ before_build:
   - cmd: dotnet --version
   - cmd: dotnet restore --verbosity m
 build_script:
-  - cmd: cd \src\Orleans.Providers.EntityFramework
-  - cmd: dotnet pack -c debug -o .\publish
+  - cmd: dotnet pack .\src\Orleans.Providers.EntityFramework -c debug -o .\src\Orleans.Providers.EntityFramework\publish
 after_build:
 artifacts:
  - path: '\src\Orleans.Providers.EntityFramework\publish'
@@ -20,9 +19,8 @@ artifacts:
    type: NuGetPackage
 clone_depth: 1
 test_script:
-  - cmd: cd \test\Orleans.Providers.EntityFramework.UnitTests
   - cmd: dotnet restore --verbosity m
-  - cmd: dotnet test
+  - cmd: dotnet test .\test\Orleans.Providers.EntityFramework.UnitTests
 on_finish :
   
 deploy: off

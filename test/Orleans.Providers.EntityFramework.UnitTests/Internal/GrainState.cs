@@ -1,6 +1,6 @@
 ﻿namespace Orleans.Providers.EntityFramework.UnitTests.Internal
 {
-    internal class GrainState<T> : IGrainState
+    public class GrainState<T> : IGrainState
         where T : class, new()
     {
         public T State;

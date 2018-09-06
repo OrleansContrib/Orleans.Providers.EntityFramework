@@ -30,7 +30,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
                                 .FirstOrDefault(e => e.Id.Equals(entity.Id) && e.KeyExt == entity.KeyExt);
                         else
                             actual = context.Set<EntityWithGuidKey>()
-                                .FirstOrDefault(e => e.Id.Equals(entity.Id) && e.KeyExt == entity.KeyExt);
+                                .FirstOrDefault(e => e.Id.Equals(entity.Id));
 
                         break;
                     case Entity<long> _:
@@ -39,11 +39,11 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
                                 .FirstOrDefault(e => e.Id.Equals(entity.Id) && e.KeyExt == entity.KeyExt);
                         else
                             actual = context.Set<EntityWithIntegerKey>()
-                                .FirstOrDefault(e => e.Id.Equals(entity.Id) && e.KeyExt == entity.KeyExt);
+                                .FirstOrDefault(e => e.Id.Equals(entity.Id));
                         break;
                     case Entity<string> _:
                         actual = context.Set<EntityWithStringKey>()
-                            .FirstOrDefault(e => e.Id.Equals(entity.Id) && e.KeyExt == entity.KeyExt);
+                            .FirstOrDefault(e => e.KeyExt == entity.KeyExt);
                         break;
 
                     default:
@@ -60,6 +60,25 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
         {
             object actual = FetchEntityFromDb(serviceProvider, expected);
             Assert.Equal(expected, actual);
+        }
+
+        public static GrainState<TEntity> CreateAndStoreGrainState<TEntity>(IServiceProvider serviceProvider)
+            where TEntity : class, new()
+        {
+            using (IServiceScope scope = serviceProvider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+                var entity = new TEntity();
+                // Somehow ef is ignoring IsPersisted property value conversion
+                var d = (dynamic)entity;
+                d.IsPersisted = true;
+                context.Add(entity);
+                context.SaveChanges();
+                return new GrainState<TEntity>
+                {
+                    State = entity
+                };
+            }
         }
     }
 }

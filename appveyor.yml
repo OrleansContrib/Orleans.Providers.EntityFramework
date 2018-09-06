@@ -1,4 +1,4 @@
-version: '{version}.{build}'
+version: '0.9.1.{build}'
 image: Visual Studio 2017
 branches:
   only:
@@ -14,7 +14,7 @@ build_script:
   - cmd: dotnet pack .\src\Orleans.Providers.EntityFramework -c debug -o .\src\Orleans.Providers.EntityFramework\publish
 after_build:
 artifacts:
- - path: '\src\Orleans.Providers.EntityFramework\publish'
+ - path: '\src\Orleans.Providers.EntityFramework\publish\*.nupkg'
    name: Orleans.Providers.EntityFramework
    type: NuGetPackage
 clone_depth: 1

@@ -59,7 +59,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
             where TState : Entity<TKey>, new()
             where TGrain : Grain<TState>
         {
-            GrainState<TState> grainState = CreateAndStoreGrainState<TState>();
+            GrainState<TState> grainState = Internal.Utils.CreateAndStoreGrainState<TState>(_serviceProvider);
 
             TestGrainReference grainRef
                 = TestGrainReference.Create(grainState.State);
@@ -71,25 +71,6 @@ namespace Orleans.Providers.EntityFramework.UnitTests
 
             var actual = Internal.Utils.FetchEntityFromDb(_serviceProvider, grainState.State);
             Assert.Null(actual);
-        }
-
-        private GrainState<TEntity> CreateAndStoreGrainState<TEntity>()
-            where TEntity : class, new()
-        {
-            using (IServiceScope scope = _serviceProvider.CreateScope())
-            {
-                var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-                var entity = new TEntity();
-                // Somehow ef is ignoring IsPersisted property value conversion
-                var d = (dynamic)entity;
-                d.IsPersisted = true;
-                context.Add(entity);
-                context.SaveChanges();
-                return new GrainState<TEntity>
-                {
-                    State = entity
-                };
-            }
         }
     }
 }

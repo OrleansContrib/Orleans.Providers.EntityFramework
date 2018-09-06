@@ -61,5 +61,25 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
             object actual = FetchEntityFromDb(serviceProvider, expected);
             Assert.Equal(expected, actual);
         }
+
+
+        public static GrainState<TEntity> CreateAndStoreGrainState<TEntity>(IServiceProvider serviceProvider)
+            where TEntity : class, new()
+        {
+            using (IServiceScope scope = serviceProvider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+                var entity = new TEntity();
+                // Somehow ef is ignoring IsPersisted property value conversion
+                var d = (dynamic)entity;
+                d.IsPersisted = true;
+                context.Add(entity);
+                context.SaveChanges();
+                return new GrainState<TEntity>
+                {
+                    State = entity
+                };
+            }
+        }
     }
 }

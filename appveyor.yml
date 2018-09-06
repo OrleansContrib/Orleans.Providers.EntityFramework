@@ -1,0 +1,28 @@
+version: '{version}.{build}'
+image: Visual Studio 2017
+branches:
+  only:
+  - master
+init:
+  - cmd: git config --global core.autocrlf true
+install:
+
+before_build:
+  - cmd: dotnet --version
+  - cmd: dotnet restore --verbosity m
+build_script:
+  - cmd: cd \src\Orleans.Providers.EntityFramework
+  - cmd: dotnet pack -c debug -o .\publish
+after_build:
+artifacts:
+ - path: '\src\Orleans.Providers.EntityFramework\publish'
+   name: Orleans.Providers.EntityFramework
+   type: NuGetPackage
+clone_depth: 1
+test_script:
+  - cmd: cd \test\Orleans.Providers.EntityFramework.UnitTests
+  - cmd: dotnet restore --verbosity m
+  - cmd: dotnet test
+on_finish :
+  
+deploy: off

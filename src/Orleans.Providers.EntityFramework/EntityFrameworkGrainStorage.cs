@@ -110,7 +110,7 @@ namespace Orleans.Providers.EntityFramework
                                                    ?? throw new Exception("Impossible");
 
             var getGrainStorageOptionsImpl = getGrainStorageOptionsMethodInfo
-                .MakeGenericMethod( stateType);
+                .MakeGenericMethod(stateType);
             try
             {
                 descriptor.GrainStorageOptions = getGrainStorageOptionsImpl.Invoke(this,
@@ -162,11 +162,18 @@ namespace Orleans.Providers.EntityFramework
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
             {
+                EntityEntry<TGrainState> entry = context.Entry((TGrainState)grainState.State);
 
-                EntityEntry entry = context.Entry(grainState.State);
-                entry.State = isPersisted
-                    ? EntityState.Modified
-                    : EntityState.Added;
+                if (GrainStorageContext<TGrainState>.IsConfigured)
+                {
+                    GrainStorageContext<TGrainState>.ConfigureStateDelegate(entry);
+                }
+                else
+                {
+                    entry.State = isPersisted
+                        ? EntityState.Modified
+                        : EntityState.Added;
+                }
 
                 await context.SaveChangesAsync();
             }
@@ -185,7 +192,6 @@ namespace Orleans.Providers.EntityFramework
                 EntityEntry<TGrainState> entry = context.Entry((TGrainState)grainState.State);
 
                 entry.State = EntityState.Deleted;
-
                 await context.SaveChangesAsync();
             }
         }

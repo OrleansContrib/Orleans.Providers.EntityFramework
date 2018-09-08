@@ -1,12 +1,13 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace Orleans.Providers.EntityFramework.UnitTests.Models
 {
     public abstract class Entity<TKey> : IEquatable<Entity<TKey>>
     {
         // ReSharper disable once StaticMemberInGenericType
-        private static readonly Random Random = new Random();
+        protected static readonly Random Random = new Random();
 
         public abstract TKey Id { get; set; }
 
@@ -83,14 +84,14 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Models
     public class EntityWithIntegerKeyWithEtag : EntityWithIntegerKey
     {
         [Timestamp]
-        public byte[] ETag { get; set; }
+        public byte[] ETag { get; set; } = BitConverter.GetBytes(Random.Next());
 
 
         public EntityWithIntegerKeyWithEtag Clone()
         {
             return new EntityWithIntegerKeyWithEtag
             {
-                ETag = ETag,
+                ETag = ETag.ToArray(),
                 KeyExt = KeyExt,
                 Title = Title,
                 IdLong = IdLong,

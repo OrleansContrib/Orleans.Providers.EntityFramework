@@ -44,6 +44,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
             }
 
             // This should fail
+            grainState.State.Title = "Failing Update";
             await Assert.ThrowsAsync<InconsistentStateException>(() =>
                 _storage.WriteStateAsync(typeof(GrainWithIntegerKeyWithEtag).FullName,
                     grainRef,

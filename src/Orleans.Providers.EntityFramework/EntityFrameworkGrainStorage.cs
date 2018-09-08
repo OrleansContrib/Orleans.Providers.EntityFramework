@@ -113,7 +113,7 @@ namespace Orleans.Providers.EntityFramework
                 .MakeGenericMethod(stateType);
             try
             {
-                descriptor.GrainStorageOptions = getGrainStorageOptionsImpl.Invoke(this,
+                descriptor.GrainStorageOptions = (GrainStorageOptions)getGrainStorageOptionsImpl.Invoke(this,
                     new object[] { grainType });
             }
             catch (Exception e)
@@ -143,9 +143,14 @@ namespace Orleans.Providers.EntityFramework
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
             {
-                grainState.State = await
+                TGrainState state = await
                     options.ReadQuery(context)
                         .SingleOrDefaultAsync(expression);
+
+                grainState.State = state;
+
+                if (options.CheckForETag)
+                    grainState.ETag = options.GetETagFunc(state);
             }
         }
 
@@ -156,13 +161,13 @@ namespace Orleans.Providers.EntityFramework
             where TGrainState : class
         {
             var options = (GrainStorageOptions<TContext, TGrainState>)storageOptions;
-            var state = ((TGrainState)grainState.State);
+            var state = (TGrainState)grainState.State;
             bool isPersisted = options.IsPersistedFunc(state);
 
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
             {
-                EntityEntry<TGrainState> entry = context.Entry((TGrainState)grainState.State);
+                EntityEntry<TGrainState> entry = context.Entry(state);
 
                 if (GrainStorageContext<TGrainState>.IsConfigured)
                 {
@@ -175,7 +180,24 @@ namespace Orleans.Providers.EntityFramework
                         : EntityState.Added;
                 }
 
-                await context.SaveChangesAsync();
+                try
+                {
+                    await context.SaveChangesAsync();
+
+                    if (options.CheckForETag)
+                        grainState.ETag = options.GetETagFunc(state);
+                }
+                catch (DbUpdateConcurrencyException e)
+                {
+                    if (!options.CheckForETag)
+                        throw new InconsistentStateException(e.Message, e);
+
+                    object storedETag = e.Entries.First().OriginalValues[options.ETagProperty];
+                    throw new InconsistentStateException(e.Message,
+                        options.ConvertETagObjectToStringFunc(storedETag),
+                        grainState.ETag,
+                        e);
+                }
             }
         }
 

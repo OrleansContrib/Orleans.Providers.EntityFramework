@@ -23,6 +23,25 @@ namespace Orleans.Providers.EntityFramework.UnitTests
             _serviceProvider = storageFixture.ServiceProvider;
         }
 
+        [Fact]
+        public async Task StateShoudContainETag()
+        {
+            GrainState<EntityWithIntegerKeyWithEtag> grainState =
+                Internal.Utils.CreateAndStoreGrainState<EntityWithIntegerKeyWithEtag>(_serviceProvider);
+
+            TestGrainReference grainRef
+                = TestGrainReference.Create(grainState.State);
+
+            await _storage.ReadStateAsync(typeof(GrainWithIntegerKeyWithEtag).FullName,
+                grainRef,
+                grainState);
+
+            string expected = BitConverter.ToString(grainState.State.ETag)
+                .Replace("-", string.Empty);
+
+            Assert.Equal(expected, grainState.ETag);
+        }
+
 
         [Fact]
         public async Task WriteWithETagViolation()
@@ -66,6 +85,10 @@ namespace Orleans.Providers.EntityFramework.UnitTests
                 grainRef,
                 grainState);
 
+            string expected = BitConverter.ToString(grainState.State.ETag)
+                .Replace("-", string.Empty);
+
+            Assert.Equal(expected, grainState.ETag);
         }
     }
 }

@@ -69,6 +69,27 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <typeparam name="TGrainState"></typeparam>
         /// <returns></returns>
         Func<TGrainState, bool> CreateIsPersistedFunc<TGrainState>();
+
+        /// <summary>
+        /// Tries to find and configure an ETag property on the state model
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="throwIfNotFound">Indicates if failure of finding an ETag property should throw</param>
+        /// <typeparam name="TContext"></typeparam>
+        /// <typeparam name="TGrainState"></typeparam>
+        void FindAndConfigureETag<TContext,TGrainState>(GrainStorageOptions<TContext, TGrainState> options,
+            bool throwIfNotFound)
+            where TContext : DbContext;
+
+        /// <summary>
+        /// Confitures the ETag property using the provided propery name
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="options"></param>
+        /// <typeparam name="TContext"></typeparam>
+        /// <typeparam name="TGrainState"></typeparam>
+        void ConfigureETag<TContext, TGrainState>(string propertyName,GrainStorageOptions<TContext, TGrainState> options)
+            where TContext : DbContext;
     }
 
     public interface IGrainStorageConvention<in TContext, TGrainState>

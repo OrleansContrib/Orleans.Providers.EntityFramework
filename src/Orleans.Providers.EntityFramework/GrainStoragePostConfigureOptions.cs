@@ -38,6 +38,17 @@ namespace Orleans.Providers.EntityFramework
             if (options.IsPersistedFunc == null)
                 options.IsPersistedFunc =
                     DefaultConvention.CreateIsPersistedFunc<TGrainState>();
+
+            // Configure ETag
+            if (options.ShouldUseETag)
+            {
+                if (!string.IsNullOrWhiteSpace(options.ETagPropertyName))
+                    DefaultConvention.ConfigureETag(options.ETagPropertyName, options);
+            }
+
+            DefaultConvention.FindAndConfigureETag(options, options.ShouldUseETag);
+
+            // todo: Validate options
         }
     }
 }

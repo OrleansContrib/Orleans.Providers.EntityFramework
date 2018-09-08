@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Orleans.Providers.EntityFramework.Exceptions;
 using Orleans.Providers.EntityFramework.Utils;
 using Orleans.Runtime;
 
@@ -12,9 +16,11 @@ namespace Orleans.Providers.EntityFramework.Conventions
     public class GrainStorageConvention : IGrainStorageConvention
     {
         private readonly GrainStorageConventionOptions _options;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public GrainStorageConvention(IOptions<GrainStorageConventionOptions> options)
+        public GrainStorageConvention(IOptions<GrainStorageConventionOptions> options, IServiceScopeFactory serviceScopeFactory)
         {
+            _serviceScopeFactory = serviceScopeFactory;
             _options = options.Value;
         }
 
@@ -369,6 +375,159 @@ namespace Orleans.Providers.EntityFramework.Conventions
             where TProperty : class
         {
             return !((TProperty)propertyInfo.GetValue(state)).Equals(default(TProperty));
+        }
+
+        #endregion
+
+        #region ETag
+
+        public void FindAndConfigureETag<TContext, TGrainState>(
+            GrainStorageOptions<TContext, TGrainState> options,
+            bool throwIfNotFound)
+            where TContext : DbContext
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<TContext>();
+
+                IEntityType entityType = context.Model.FindEntityType(typeof(TGrainState));
+
+                if (entityType == null)
+                    return;
+
+                if (!FindAndConfigureETag(entityType, options) && throwIfNotFound)
+                    throw new GrainStorageConfigurationException(
+                        $"Could not find a valid ETag property on type \"{typeof(TGrainState).FullName}\".");
+            }
+        }
+
+        public void ConfigureETag<TContext, TGrainState>(
+            string propertyName,
+            GrainStorageOptions<TContext, TGrainState> options)
+            where TContext : DbContext
+        {
+            if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<TContext>();
+
+                IEntityType entityType = context.Model.FindEntityType(typeof(TGrainState));
+
+                if (entityType == null)
+                    return;
+
+                ConfigureETag(entityType, propertyName, options);
+            }
+        }
+
+        private static bool FindAndConfigureETag<TContext, TGrainState>(
+            IEntityType entityType,
+            GrainStorageOptions<TContext, TGrainState> options)
+            where TContext : DbContext
+        {
+            if (entityType == null) throw new ArgumentNullException(nameof(entityType));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            IEnumerable<IProperty> properties = entityType.GetProperties();
+
+            foreach (IProperty property in properties)
+            {
+                if (!property.IsConcurrencyToken)
+                    continue;
+
+                ConfigureETag(property, options);
+
+                return true;
+            }
+
+            return false;
+        }
+
+
+        private static void ConfigureETag<TContext, TGrainState>(
+            IEntityType entityType,
+            string propertyName,
+            GrainStorageOptions<TContext, TGrainState> options)
+            where TContext : DbContext
+        {
+            if (entityType == null) throw new ArgumentNullException(nameof(entityType));
+            if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            IProperty property = entityType.FindProperty(propertyName);
+
+            if (property == null)
+                throw new GrainStorageConfigurationException(
+                    $"Property {propertyName} on model{typeof(TGrainState).FullName} not found.");
+
+            ConfigureETag(property, options);
+        }
+
+
+        private static void ConfigureETag<TContext, TGrainState>(
+            IProperty property,
+            GrainStorageOptions<TContext, TGrainState> options)
+            where TContext : DbContext
+        {
+            if (property == null) throw new ArgumentNullException(nameof(property));
+
+            if (!property.IsConcurrencyToken)
+                throw new GrainStorageConfigurationException($"Property {property.Name} is not a concurrency token.");
+
+            options.CheckForETag = true;
+            options.ETagPropertyName = property.Name;
+            options.ETagProperty = property;
+            options.ETagType = property.ClrType;
+
+            options.GetETagFunc = CreateGetETagFunc<TGrainState>(property.Name);
+            options.ConvertETagObjectToStringFunc
+                = CreateConvertETagObjectToStringFunc();
+        }
+
+        private static Func<TGrainState, string> CreateGetETagFunc<TGrainState>(string propertyName)
+        {
+            PropertyInfo propertyInfo = ReflectionHelper.GetPropertyInfo<TGrainState>(propertyName);
+
+            var getterDelegate = (Func<TGrainState, object>)Delegate.CreateDelegate(
+                typeof(Func<TGrainState, object>),
+                null,
+                propertyInfo.GetMethod);
+
+            return state => ConvertETagObjectToString(getterDelegate(state));
+        }
+
+        private static Func<object, string> CreateConvertETagObjectToStringFunc()
+        {
+            return ConvertETagObjectToString;
+        }
+
+        private static string ConvertETagObjectToString(object obj)
+        {
+            switch (obj)
+            {
+                case byte[] bytes:
+                    return ByteToHexBitFiddle(bytes);
+                default:
+                    return obj.ToString();
+            }
+
+        }
+
+        private static string ByteToHexBitFiddle(byte[] bytes)
+        {
+            var c = new char[bytes.Length * 2];
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                int b = bytes[i] >> 4;
+                c[i * 2] = (char)(55 + b + (((b - 10) >> 31) & -7));
+                b = bytes[i] & 0xF;
+                c[i * 2 + 1] = (char)(55 + b + (((b - 10) >> 31) & -7));
+            }
+            return new string(c);
         }
 
         #endregion

@@ -2,7 +2,7 @@
 {
     internal class GrainStorageDescriptor
     {
-        public object GrainStorageOptions { get; set; }
+        public GrainStorageOptions GrainStorageOptions { get; set; }
 
         public ReadWriteStateAsyncDelegate ReadStateAsyncDelegate { get; set; }
 

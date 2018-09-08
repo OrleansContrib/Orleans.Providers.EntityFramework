@@ -124,11 +124,43 @@ services.Configure<GrainStorageConventionOptions>(options =>
 });
 ```
 
+### ETags
 
-## Known Issues
+By default models are searched for Etags and if a property on a model is marked as **ConcurrencyToken** the storage will pick that up.
+
+Using the fluent API that would be:
+
+```
+builder.Entity<SpecialBox>()
+    .Property(e => e.ETag)
+    .IsConcurrencyToken();
+
+```
+
+Models can be further configured using extensions:
+
+```
+services
+    .ConfigureGrainStorageOptions<FatDbContext, SpecialBoxGrain, SpecialBox>(
+        options => options
+            .UseETag()
+    )
+```
+
+Using **UseETag** overload with no params instructs the storage to find an ETag property. If no valid property was found, an exception would be thrown.
+
+Use the following overload to explicitly configure the storage to use the provided property. If the property is not marked as **ConcurrencyCheck** an exception would be throw.
+
+```
+services
+    .ConfigureGrainStorageOptions<FatDbContext, SpecialBoxGrain, SpecialBox>(
+        options => options
+            .UseETag(box => box.ETag)
+    )
+```
+
+## Known Issues and Limitations
 
 - As types has to be configured in dbcontext, arbitrary types can't use this provider. 
 This specially causes issues with Orleans VersionStoreGrain internal grain, hence this GrainStorage can't 
 be used as default grain storage. I'll handle that special case if I get the time needed.
-
-- Etags support

@@ -8,4 +8,6 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Grains
 
     public class GrainWithGuidCompoundKey : Grain<EntityWithGuidCompoundKey>, IGrainWithGuidCompoundKey { }
     public class GrainWithIntegerCompoundKey : Grain<EntityWithIntegerCompoundKey>, IGrainWithIntegerCompoundKey { }
+
+    public class GrainWithIntegerKeyWithEtag : Grain<EntityWithIntegerKeyWithEtag>, IGrainWithIntegerKey { }
 }

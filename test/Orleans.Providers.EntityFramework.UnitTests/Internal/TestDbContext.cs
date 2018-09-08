@@ -17,6 +17,8 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
         public DbSet<EntityWithIntegerCompoundKey> IntegerCompoundKeyEntities { get; set; }
         public DbSet<EntityWithStringKey> StringKeyEntities { get; set; }
 
+        public DbSet<EntityWithIntegerKeyWithEtag> ETagEntities { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<EntityWithGuidKey>()

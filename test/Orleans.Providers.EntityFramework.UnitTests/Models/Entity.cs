@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Orleans.Providers.EntityFramework.UnitTests.Models
 {
@@ -77,5 +78,27 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Models
     {
         public override string Id { get => IdString; set => IdString = value; }
         public override bool HasKeyExt => false;
+    }
+
+    public class EntityWithIntegerKeyWithEtag : EntityWithIntegerKey
+    {
+        [Timestamp]
+        public byte[] ETag { get; set; }
+
+
+        public EntityWithIntegerKeyWithEtag Clone()
+        {
+            return new EntityWithIntegerKeyWithEtag
+            {
+                ETag = ETag,
+                KeyExt = KeyExt,
+                Title = Title,
+                IdLong = IdLong,
+                Id = Id,
+                IdGuid = IdGuid,
+                IdString = IdString,
+                IsPersisted = IsPersisted
+            };
+        }
     }
 }

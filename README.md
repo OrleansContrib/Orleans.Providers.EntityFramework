@@ -57,6 +57,7 @@ The following sample model would work out of the box for a grain that implements
 public class Box {
   public Guid Id { get; set; }
   public string KeyExt { get; set; }
+  public byte[] ETag { get; set; }
 }
 ```
 

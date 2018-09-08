@@ -1,10 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Update;
 using Orleans.Providers.EntityFramework.UnitTests.Models;
 
 namespace Orleans.Providers.EntityFramework.UnitTests.Internal
 {
     public class TestDbContext : DbContext
     {
+        protected static readonly Random Random = new Random(234);
 
         public TestDbContext(DbContextOptions options)
             : base(options)
@@ -16,6 +26,8 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
         public DbSet<EntityWithIntegerKey> IntegerKeyEntities { get; set; }
         public DbSet<EntityWithIntegerCompoundKey> IntegerCompoundKeyEntities { get; set; }
         public DbSet<EntityWithStringKey> StringKeyEntities { get; set; }
+
+        public DbSet<EntityWithIntegerKeyWithEtag> ETagEntities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -45,6 +57,19 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
                     isPersisted => true,
                     value => true);
 
+            builder.Entity<EntityWithIntegerKeyWithEtag>()
+                .Property(e => e.IsPersisted)
+                .HasConversion<bool>(
+                    isPersisted => true,
+                    value => true);
+            builder.Entity<EntityWithIntegerKeyWithEtag>()
+                .Property(e => e.ETag)
+                .HasConversion<byte[]>(
+                    value => BitConverter.GetBytes(Random.Next()),
+                    storedValue => storedValue
+                )
+                .IsConcurrencyToken();
+
             builder.Entity<EntityWithGuidCompoundKey>()
                 .HasKey(e => new
                 {
@@ -59,5 +84,39 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
                 });
         }
 
+        public override int SaveChanges()
+        {
+            MockConcurrencyChecks();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(
+            CancellationToken cancellationToken = new CancellationToken())
+        {
+            MockConcurrencyChecks();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void MockConcurrencyChecks()
+        {
+            // Check etags as the in-memory storage doesn't
+            foreach (EntityWithIntegerKeyWithEtag entitiy in this.ETagEntities.Local)
+            {
+                var entry = this.Entry(entitiy);
+
+                if (entry.State != EntityState.Modified)
+                    continue;
+
+                EntityWithIntegerKeyWithEtag storedEntity = this.ETagEntities.AsNoTracking()
+                    .Single(e => e.Id == entitiy.Id);
+
+                if (!storedEntity.ETag.SequenceEqual(entitiy.ETag))
+                    throw new DbUpdateConcurrencyException("ETag violation",
+                        entry.GetInfrastructure().StateManager.Entries.Select(
+                            e => (IUpdateEntry) e).ToList());
+
+                entitiy.ETag = BitConverter.GetBytes(Random.Next());
+            }
+        }
     }
 }

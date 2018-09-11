@@ -10,4 +10,10 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Grains
     public class GrainWithIntegerCompoundKey : Grain<EntityWithIntegerCompoundKey>, IGrainWithIntegerCompoundKey { }
 
     public class GrainWithIntegerKeyWithEtag : Grain<EntityWithIntegerKeyWithEtag>, IGrainWithIntegerKey { }
+
+    // Configuration
+    public class ConfiguredGrainWithCustomGuidKey : Grain<ConfiguredEntityWithCustomGuidKey>, IGrainWithGuidCompoundKey { }
+    public class UnconfiguredGrainWithCustomGuidKey : Grain<UnconfiguredEntityWithCustomGuidKey>, IGrainWithGuidCompoundKey { }
+
+    public class InvalidConfiguredGrainWithGuidKey : Grain<InvalidConfiguredEntityWithCustomGuidKey>, IGrainWithIntegerKey{ }
 }

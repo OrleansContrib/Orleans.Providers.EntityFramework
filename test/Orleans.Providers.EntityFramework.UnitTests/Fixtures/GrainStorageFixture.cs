@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Providers.EntityFramework.Conventions;
+using Orleans.Providers.EntityFramework.Extensions;
+using Orleans.Providers.EntityFramework.UnitTests.Grains;
 using Orleans.Providers.EntityFramework.UnitTests.Internal;
 using Orleans.Providers.EntityFramework.UnitTests.Models;
 using Orleans.Storage;
@@ -28,12 +30,24 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 // Simple key grains with default key properties on state model
                 // should work out of the box without configuration.
 
+                .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey,
+                    ConfiguredEntityWithCustomGuidKey>(
+                    options => options
+                        .UseKey(entity => entity.CustomKey)
+                        .UseKeyExt(entity => entity.CustomKeyExt))
+
+                .ConfigureGrainStorageOptions<TestDbContext, InvalidConfiguredGrainWithGuidKey,
+                    InvalidConfiguredEntityWithCustomGuidKey>(
+                    options => options
+                        .UseKey(entity => entity.CustomKey)
+                        .UseKeyExt(entity => entity.CustomKeyExt))
+
                 .AddSingleton<IGrainStorage, EntityFrameworkGrainStorage<TestDbContext>>()
                 .Configure<GrainStorageConventionOptions>(options =>
                 {
                     options.DefaultGrainKeyPropertyName = nameof(EntityWithGuidKey.Id);
                     options.DefaultGrainKeyExtPropertyName = nameof(EntityWithGuidKey.KeyExt);
-                    options.DefaultPersistanceCheckPropertyName = nameof(EntityWithGuidKey.IsPersisted);
+                    options.DefaultPersistenceCheckPropertyName = nameof(EntityWithGuidKey.IsPersisted);
                 });
 
             ServiceProvider = services.BuildServiceProvider();

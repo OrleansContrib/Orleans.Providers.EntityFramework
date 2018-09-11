@@ -29,6 +29,11 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
 
         public DbSet<EntityWithIntegerKeyWithEtag> ETagEntities { get; set; }
 
+        public DbSet<ConfiguredEntityWithCustomGuidKey> ConfiguredEntities { get; set; }
+        public DbSet<UnconfiguredEntityWithCustomGuidKey> UnconfiguredEntities { get; set; }
+
+        public DbSet<InvalidConfiguredEntityWithCustomGuidKey> InvalidEntities { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<EntityWithGuidKey>()
@@ -74,13 +79,34 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
                 .HasKey(e => new
                 {
                     e.Id,
-                    ExtKey = e.KeyExt
+                    e.KeyExt
                 });
             builder.Entity<EntityWithIntegerCompoundKey>()
                 .HasKey(e => new
                 {
                     e.Id,
-                    ExtKey = e.KeyExt
+                    e.KeyExt
+                });
+
+            builder.Entity<ConfiguredEntityWithCustomGuidKey>()
+                .HasKey(e => new
+                {
+                    e.CustomKey,
+                    e.CustomKeyExt
+                });
+
+            builder.Entity<UnconfiguredEntityWithCustomGuidKey>()
+                .HasKey(e => new
+                {
+                    e.CustomKey,
+                    e.CustomKeyExt
+                });
+
+            builder.Entity<InvalidConfiguredEntityWithCustomGuidKey>()
+                .HasKey(e => new
+                {
+                    e.CustomKey,
+                    e.CustomKeyExt
                 });
         }
 

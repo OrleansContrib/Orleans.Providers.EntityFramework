@@ -9,7 +9,13 @@ namespace Orleans.Providers.EntityFramework
 {
     public abstract class GrainStorageOptions
     {
+        internal string KeyPropertyName { get; set; }
+
+        internal string KeyExtPropertyName { get; set; }
+
         internal string ETagPropertyName { get; set; }
+
+        internal string PersistenceCheckPropertyName { get; set; }
 
         internal IProperty ETagProperty { get; set; }
 
@@ -20,6 +26,8 @@ namespace Orleans.Providers.EntityFramework
         internal Type ETagType { get; set; }
 
         public bool ShouldUseETag { get; set; }
+
+        internal bool IsConfigured { get; set; }
 
     }
 

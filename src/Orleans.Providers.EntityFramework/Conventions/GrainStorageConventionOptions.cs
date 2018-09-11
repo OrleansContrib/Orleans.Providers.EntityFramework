@@ -6,6 +6,6 @@
 
         public string DefaultGrainKeyExtPropertyName { get; set; } = "KeyExt";
 
-        public string DefaultPersistanceCheckPropertyName { get; set; } = "Id";
+        public string DefaultPersistenceCheckPropertyName { get; set; } = "Id";
     }
 }

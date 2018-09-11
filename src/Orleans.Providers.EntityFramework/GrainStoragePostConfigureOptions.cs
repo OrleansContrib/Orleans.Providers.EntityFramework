@@ -33,11 +33,11 @@ namespace Orleans.Providers.EntityFramework
                 options.QueryExpressionGeneratorFunc
                     = Convention?.CreateGrainStateQueryExpressionGeneratorFunc()
                       ?? DefaultConvention
-                          .CreateDefaultGrainStateQueryExpressionGeneratorFunc<TGrain, TGrainState>();
+                          .CreateDefaultGrainStateQueryExpressionGeneratorFunc<TGrain, TGrainState>(options);
 
             if (options.IsPersistedFunc == null)
                 options.IsPersistedFunc =
-                    DefaultConvention.CreateIsPersistedFunc<TGrainState>();
+                    DefaultConvention.CreateIsPersistedFunc<TGrainState>(options);
 
             // Configure ETag
             if (options.ShouldUseETag)
@@ -49,6 +49,8 @@ namespace Orleans.Providers.EntityFramework
             DefaultConvention.FindAndConfigureETag(options, options.ShouldUseETag);
 
             // todo: Validate options
+
+            options.IsConfigured = true;
         }
     }
 }

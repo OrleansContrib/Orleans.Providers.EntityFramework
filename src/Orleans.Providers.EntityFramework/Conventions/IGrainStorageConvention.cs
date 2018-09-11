@@ -30,7 +30,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <typeparam name="TGrainState"></typeparam>
         /// <returns></returns>
         Func<IAddressable, Expression<Func<TGrainState, bool>>>
-            CreateDefaultGrainStateQueryExpressionGeneratorFunc<TGrain, TGrainState>()
+            CreateDefaultGrainStateQueryExpressionGeneratorFunc<TGrain, TGrainState>(
+            GrainStorageOptions options)
             where TGrain : Grain<TGrainState>
             where TGrainState : new();
 
@@ -66,9 +67,10 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// Creates a method that determines if a state object is persisted in the database.
         /// This is used to decide wether an insert or an update operation is needed.
         /// </summary>
+        /// <param name="options"></param>
         /// <typeparam name="TGrainState"></typeparam>
         /// <returns></returns>
-        Func<TGrainState, bool> CreateIsPersistedFunc<TGrainState>();
+        Func<TGrainState, bool> CreateIsPersistedFunc<TGrainState>(GrainStorageOptions options);
 
         /// <summary>
         /// Tries to find and configure an ETag property on the state model
@@ -77,7 +79,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <param name="throwIfNotFound">Indicates if failure of finding an ETag property should throw</param>
         /// <typeparam name="TContext"></typeparam>
         /// <typeparam name="TGrainState"></typeparam>
-        void FindAndConfigureETag<TContext,TGrainState>(GrainStorageOptions<TContext, TGrainState> options,
+        void FindAndConfigureETag<TContext, TGrainState>(GrainStorageOptions<TContext, TGrainState> options,
             bool throwIfNotFound)
             where TContext : DbContext;
 
@@ -88,7 +90,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <param name="options"></param>
         /// <typeparam name="TContext"></typeparam>
         /// <typeparam name="TGrainState"></typeparam>
-        void ConfigureETag<TContext, TGrainState>(string propertyName,GrainStorageOptions<TContext, TGrainState> options)
+        void ConfigureETag<TContext, TGrainState>(string propertyName, GrainStorageOptions<TContext, TGrainState> options)
             where TContext : DbContext;
     }
 

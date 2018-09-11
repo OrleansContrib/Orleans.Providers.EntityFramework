@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using Orleans.Providers.EntityFramework.Exceptions;
 
 namespace Orleans.Providers.EntityFramework.Utils
 {
@@ -15,11 +16,11 @@ namespace Orleans.Providers.EntityFramework.Utils
                 = statetype.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
 
             if (idProperty == null)
-                throw new Exception(
+                throw new GrainStorageConfigurationException(
                     $"Could not find \"{propertyName}\" property on type \"{statetype.FullName}\". Either configure the state locator predicate manually or update your model.");
 
             if (!idProperty.CanRead)
-                throw new Exception(
+                throw new GrainStorageConfigurationException(
                     $"The property \"{propertyName}\" of type \"{statetype.FullName}\" must have a public getter.");
 
             return idProperty;

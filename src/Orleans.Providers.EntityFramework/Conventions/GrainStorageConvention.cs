@@ -39,7 +39,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
                     .FirstOrDefault(pinfo => pinfo.PropertyType == typeof(DbSet<TGrainState>));
 
             if (dbsetPropertyInfo == null)
-                throw new Exception($"Could not find A property of type \"{typeof(DbSet<TGrainState>).FullName}\" " +
+                throw new GrainStorageConfigurationException($"Could not find A property of type \"{typeof(DbSet<TGrainState>).FullName}\" " +
                                     $"on context with type \"{typeof(TContext).FullName}\"");
 
             var dbsetDelegate = (Func<TContext, IQueryable<TGrainState>>)Delegate.CreateDelegate(
@@ -71,18 +71,22 @@ namespace Orleans.Providers.EntityFramework.Conventions
         #region Query Expressions 
 
         public virtual Func<IAddressable, Expression<Func<TGrainState, bool>>>
-            CreateDefaultGrainStateQueryExpressionGeneratorFunc<TGrain, TGrainState>()
+            CreateDefaultGrainStateQueryExpressionGeneratorFunc<TGrain, TGrainState>(
+                GrainStorageOptions options)
             where TGrain : Grain<TGrainState>
             where TGrainState : new()
         {
-            PropertyInfo idProperty = ReflectionHelper.GetPropertyInfo<TGrainState>(_options.DefaultGrainKeyPropertyName);
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            PropertyInfo idProperty = ReflectionHelper.GetPropertyInfo<TGrainState>(
+                options.KeyPropertyName ?? _options.DefaultGrainKeyPropertyName);
 
             Type idType = idProperty.PropertyType;
 
             if (typeof(IGrainWithGuidKey).IsAssignableFrom(typeof(TGrain)))
             {
                 if (idType != typeof(Guid))
-                    throw new Exception(
+                    throw new GrainStorageConfigurationException(
                         $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a Guid key " +
                         $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
                         $"is of type {idType.FullName}.");
@@ -96,7 +100,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             if (typeof(IGrainWithIntegerKey).IsAssignableFrom(typeof(TGrain)))
             {
                 if (idType != typeof(long))
-                    throw new Exception(
+                    throw new GrainStorageConfigurationException(
                         $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a long key " +
                         $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
                         $"is of type {idType.FullName}.");
@@ -110,7 +114,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             if (typeof(IGrainWithStringKey).IsAssignableFrom(typeof(TGrain)))
             {
                 if (idType != typeof(string))
-                    throw new Exception(
+                    throw new GrainStorageConfigurationException(
                         $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a string key " +
                         $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
                         $"is of type {idType.FullName}.");
@@ -123,10 +127,11 @@ namespace Orleans.Providers.EntityFramework.Conventions
             if (typeof(IGrainWithGuidCompoundKey).IsAssignableFrom(typeof(TGrain)))
             {
                 PropertyInfo keyExtProperty
-                    = ReflectionHelper.GetPropertyInfo<TGrainState>(_options.DefaultGrainKeyExtPropertyName);
+                    = ReflectionHelper.GetPropertyInfo<TGrainState>(
+                        options.KeyExtPropertyName ?? _options.DefaultGrainKeyExtPropertyName);
 
                 if (keyExtProperty.PropertyType != typeof(string))
-                    throw new Exception($"Can not use property \"{keyExtProperty.Name}\" " +
+                    throw new GrainStorageConfigurationException($"Can not use property \"{keyExtProperty.Name}\" " +
                                         $"on grain state type \"{typeof(TGrainState)}\". " +
                                         "KeyExt property must be of type string.");
 
@@ -140,10 +145,11 @@ namespace Orleans.Providers.EntityFramework.Conventions
             if (typeof(IGrainWithIntegerCompoundKey).IsAssignableFrom(typeof(TGrain)))
             {
                 PropertyInfo keyExtProperty
-                    = ReflectionHelper.GetPropertyInfo<TGrainState>(_options.DefaultGrainKeyExtPropertyName);
+                    = ReflectionHelper.GetPropertyInfo<TGrainState>(
+                        options.KeyExtPropertyName ?? _options.DefaultGrainKeyExtPropertyName);
 
                 if (keyExtProperty.PropertyType != typeof(string))
-                    throw new Exception($"Can not use property \"{keyExtProperty.Name}\" " +
+                    throw new GrainStorageConfigurationException($"Can not use property \"{keyExtProperty.Name}\" " +
                                         $"on grain state type \"{typeof(TGrainState)}\". " +
                                         "KeyExt property must be of type string.");
 
@@ -154,7 +160,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
                     keyExtProperty.Name);
             }
 
-            throw new Exception($"Unexpected grain type \"{typeof(TGrain)}\".");
+            throw new GrainStorageConfigurationException($"Unexpected grain type \"{typeof(TGrain)}\".");
         }
 
         #region ValueTypes: long and guid
@@ -345,7 +351,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             //        $"Property type \"{idProperty.PropertyType.FullName}\" is not supported for IsPersistedFunc.");
 
             if (!idProperty.CanRead)
-                throw new Exception(
+                throw new GrainStorageConfigurationException(
                     $"Property \"{idProperty.Name}\" of type \"{idProperty.PropertyType.FullName}\" " +
                     "must have a public getter.");
 

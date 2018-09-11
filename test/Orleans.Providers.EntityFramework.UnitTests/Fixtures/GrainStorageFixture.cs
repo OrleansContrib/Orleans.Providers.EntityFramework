@@ -39,7 +39,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 .ConfigureGrainStorageOptions<TestDbContext, InvalidConfiguredGrainWithGuidKey,
                     InvalidConfiguredEntityWithCustomGuidKey>(
                     options => options
-                        .UseKey(nameof(InvalidConfiguredEntityWithCustomGuidKey.CustomKey))
+                        .UseKey(entity => entity.CustomKey)
                         .UseKeyExt(entity => entity.CustomKeyExt))
 
                 .AddSingleton<IGrainStorage, EntityFrameworkGrainStorage<TestDbContext>>()

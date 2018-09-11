@@ -102,4 +102,31 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Models
             };
         }
     }
+
+    public class ConfiguredEntityWithCustomGuidKey 
+    {
+        public Guid CustomKey { get; set; } = Guid.NewGuid();
+
+        public string CustomKeyExt { get; set; } = "Not assigned";
+
+        public bool IsPersisted { get; set; }
+    }
+
+    public class UnconfiguredEntityWithCustomGuidKey
+    {
+        public Guid CustomKey { get; set; } = Guid.NewGuid();
+
+        public string CustomKeyExt { get; set; } = "Not assigned";
+
+        public bool IsPersisted { get; set; }
+    }
+
+    public class InvalidConfiguredEntityWithCustomGuidKey
+    {
+        public string CustomKey { get; set; } = "Invalid key";
+
+        public string CustomKeyExt { get; set; } = "Not assigned";
+
+        public bool IsPersisted { get; set; }
+    }
 }

@@ -47,7 +47,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 {
                     options.DefaultGrainKeyPropertyName = nameof(EntityWithGuidKey.Id);
                     options.DefaultGrainKeyExtPropertyName = nameof(EntityWithGuidKey.KeyExt);
-                    options.DefaultPersistanceCheckPropertyName = nameof(EntityWithGuidKey.IsPersisted);
+                    options.DefaultPersistenceCheckPropertyName = nameof(EntityWithGuidKey.IsPersisted);
                 });
 
             ServiceProvider = services.BuildServiceProvider();

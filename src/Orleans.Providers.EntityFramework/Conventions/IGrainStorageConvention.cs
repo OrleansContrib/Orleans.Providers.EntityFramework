@@ -67,9 +67,10 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// Creates a method that determines if a state object is persisted in the database.
         /// This is used to decide wether an insert or an update operation is needed.
         /// </summary>
+        /// <param name="options"></param>
         /// <typeparam name="TGrainState"></typeparam>
         /// <returns></returns>
-        Func<TGrainState, bool> CreateIsPersistedFunc<TGrainState>();
+        Func<TGrainState, bool> CreateIsPersistedFunc<TGrainState>(GrainStorageOptions options);
 
         /// <summary>
         /// Tries to find and configure an ETag property on the state model

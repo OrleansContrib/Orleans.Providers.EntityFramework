@@ -37,7 +37,7 @@ namespace Orleans.Providers.EntityFramework
 
             if (options.IsPersistedFunc == null)
                 options.IsPersistedFunc =
-                    DefaultConvention.CreateIsPersistedFunc<TGrainState>();
+                    DefaultConvention.CreateIsPersistedFunc<TGrainState>(options);
 
             // Configure ETag
             if (options.ShouldUseETag)

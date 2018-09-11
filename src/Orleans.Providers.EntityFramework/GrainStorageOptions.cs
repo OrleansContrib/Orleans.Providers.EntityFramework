@@ -15,6 +15,8 @@ namespace Orleans.Providers.EntityFramework
 
         internal string ETagPropertyName { get; set; }
 
+        internal string PersistenceCheckPropertyName { get; set; }
+
         internal IProperty ETagProperty { get; set; }
 
         internal bool CheckForETag { get; set; }

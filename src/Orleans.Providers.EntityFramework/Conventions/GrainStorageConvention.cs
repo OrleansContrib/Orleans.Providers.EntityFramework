@@ -339,16 +339,14 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <summary>
         /// Creates a method that tests the value of the Id property to default of its type.
         /// </summary>
+        /// <param name="options"></param>
         /// <typeparam name="TGrainState"></typeparam>
         /// <returns></returns>
-        public virtual Func<TGrainState, bool> CreateIsPersistedFunc<TGrainState>()
+        public virtual Func<TGrainState, bool> CreateIsPersistedFunc<TGrainState>(GrainStorageOptions options)
         {
             PropertyInfo idProperty
-                = ReflectionHelper.GetPropertyInfo<TGrainState>(_options.DefaultPersistanceCheckPropertyName);
-
-            //if (!idProperty.PropertyType.IsValueType)
-            //    throw new NotSupportedException(
-            //        $"Property type \"{idProperty.PropertyType.FullName}\" is not supported for IsPersistedFunc.");
+                = ReflectionHelper.GetPropertyInfo<TGrainState>(
+                    options.PersistenceCheckPropertyName ?? _options.DefaultPersistenceCheckPropertyName);
 
             if (!idProperty.CanRead)
                 throw new GrainStorageConfigurationException(

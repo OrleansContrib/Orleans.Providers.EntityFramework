@@ -69,7 +69,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> UseETag<TContext, TGrainState,TProperty>(
+        public static GrainStorageOptions<TContext, TGrainState> UseETag<TContext, TGrainState, TProperty>(
             this GrainStorageOptions<TContext, TGrainState> options,
             Expression<Func<TGrainState, TProperty>> expression)
             where TContext : DbContext
@@ -199,6 +199,38 @@ namespace Orleans.Providers.EntityFramework.Extensions
             if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
 
             options.KeyExtPropertyName = propertyName;
+
+            return options;
+        }
+
+        public static GrainStorageOptions<TContext, TGrainState> CheckPersistenceOn<TContext, TGrainState, TProperty>(
+            this GrainStorageOptions<TContext, TGrainState> options,
+            Expression<Func<TGrainState, TProperty>> expression)
+            where TContext : DbContext
+            where TGrainState : class, new()
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+
+            var memberExpression = expression.Body as MemberExpression
+                                   ?? throw new ArgumentException(
+                                       $"{nameof(expression)} must be a MemberExpression.");
+
+            options.PersistenceCheckPropertyName = memberExpression.Member.Name;
+
+            return options;
+        }
+
+        public static GrainStorageOptions<TContext, TGrainState> CheckPersistenceOn<TContext, TGrainState>(
+            this GrainStorageOptions<TContext, TGrainState> options,
+            string propertyName)
+            where TContext : DbContext
+            where TGrainState : class, new()
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
+
+            options.PersistenceCheckPropertyName = propertyName;
 
             return options;
         }

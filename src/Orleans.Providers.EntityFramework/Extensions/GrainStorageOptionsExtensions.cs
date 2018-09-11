@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Orleans.Providers.EntityFramework.Exceptions;
 using Orleans.Runtime;
 
 namespace Orleans.Providers.EntityFramework.Extensions
@@ -78,7 +79,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
             var memberExpression = expression.Body as MemberExpression
-                                   ?? throw new InvalidEnumArgumentException(
+                                   ?? throw new ArgumentException(
                                        $"{nameof(expression)} must be a MemberExpression.");
 
             options.ETagPropertyName = memberExpression.Member.Name;
@@ -98,6 +99,106 @@ namespace Orleans.Providers.EntityFramework.Extensions
 
             options.ETagPropertyName = propertyName;
             options.ShouldUseETag = true;
+
+            return options;
+        }
+
+        public static GrainStorageOptions<TContext, TGrainState> UseKey<TContext, TGrainState>(
+            this GrainStorageOptions<TContext, TGrainState> options,
+            Expression<Func<TGrainState, Guid>> expression)
+            where TContext : DbContext
+            where TGrainState : class, new()
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+
+            var memberExpression = expression.Body as MemberExpression
+                                   ?? throw new ArgumentException(
+                                       $"{nameof(expression)} must be a MemberExpression.");
+
+            options.KeyPropertyName = memberExpression.Member.Name;
+
+            return options;
+        }
+
+        public static GrainStorageOptions<TContext, TGrainState> UseKey<TContext, TGrainState>(
+            this GrainStorageOptions<TContext, TGrainState> options,
+            Expression<Func<TGrainState, long>> expression)
+            where TContext : DbContext
+            where TGrainState : class, new()
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+
+            var memberExpression = expression.Body as MemberExpression
+                                   ?? throw new GrainStorageConfigurationException(
+                                       $"{nameof(expression)} must be a MemberExpression.");
+
+            options.KeyPropertyName = memberExpression.Member.Name;
+
+            return options;
+        }
+
+        public static GrainStorageOptions<TContext, TGrainState> UseKey<TContext, TGrainState>(
+            this GrainStorageOptions<TContext, TGrainState> options,
+            Expression<Func<TGrainState, string>> expression)
+            where TContext : DbContext
+            where TGrainState : class, new()
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+
+            var memberExpression = expression.Body as MemberExpression
+                                   ?? throw new ArgumentException(
+                                       $"{nameof(expression)} must be a MemberExpression.");
+
+            options.KeyPropertyName = memberExpression.Member.Name;
+
+            return options;
+        }
+
+        public static GrainStorageOptions<TContext, TGrainState> UseKey<TContext, TGrainState>(
+            this GrainStorageOptions<TContext, TGrainState> options,
+            string propertyName)
+            where TContext : DbContext
+            where TGrainState : class, new()
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
+
+            options.KeyPropertyName = propertyName;
+
+            return options;
+        }
+
+        public static GrainStorageOptions<TContext, TGrainState> UseKeyExt<TContext, TGrainState>(
+            this GrainStorageOptions<TContext, TGrainState> options,
+            Expression<Func<TGrainState, string>> expression)
+            where TContext : DbContext
+            where TGrainState : class, new()
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+
+            var memberExpression = expression.Body as MemberExpression
+                                   ?? throw new ArgumentException(
+                                       $"{nameof(expression)} must be a MemberExpression.");
+
+            options.KeyExtPropertyName = memberExpression.Member.Name;
+
+            return options;
+        }
+
+        public static GrainStorageOptions<TContext, TGrainState> UseKeyExt<TContext, TGrainState>(
+            this GrainStorageOptions<TContext, TGrainState> options,
+            string propertyName)
+            where TContext : DbContext
+            where TGrainState : class, new()
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
+
+            options.KeyExtPropertyName = propertyName;
 
             return options;
         }

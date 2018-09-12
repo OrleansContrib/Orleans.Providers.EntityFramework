@@ -1,6 +1,8 @@
 # Orleans.Providers.EntityFramework
 An Entity Framework Core implementation of Orleans Grain Storage.
 
+[![AppVeyor](https://img.shields.io/appveyor/ci/alirezajm/orleans-providers-entityframework.svg)](https://ci.appveyor.com/project/alirezajm/orleans-providers-entityframework)
+[![NuGet](https://img.shields.io/nuget/v/Orleans.Providers.EntityFramework.svg)](https://www.nuget.org/packages/Orleans.Providers.EntityFramework)
 
 ## Usage
 
@@ -43,12 +45,12 @@ but you can change the default behavior like so:
 services.Configure<GrainStorageConventionOptions>(options =>
 {
     options.DefaultGrainKeyPropertyName = "Id";
-    options.DefaultPersistanceCheckPropertyName = "Id";
+    options.DefaultPersistenceCheckPropertyName = "Id";
     options.DefaultGrainKeyExtPropertyName = "KeyExt";
 });
 ```
 
-**DefaultPersistanceCheckPropertyName** is used to check if a model needs to be inserted into the database or updated. 
+**DefaultPersistenceCheckPropertyName** is used to check if a model needs to be inserted into the database or updated. 
 The value of said property will be checked against the default value of the type.
 
 The following sample model would work out of the box for a grain that implements IGrainWithGuidCompoundKey and requires no configuration:
@@ -88,6 +90,17 @@ services
     )
 ```
 
+or 
+
+```
+services
+    .ConfigureGrainStorageOptions<FatDbContext, SpecialBoxGrain, SpecialBox>(
+        options => options
+            .UseKey(box => box.WeirdId)
+            .UseKeyExt(box => box.Type)
+    )
+```
+
 The **UseQueryExpression** method instructs the sotrage to use the provided expression to query the database.
 
 ### Loading additional data on read state
@@ -103,7 +116,7 @@ services
     )
 ```
 
-### Using custom persistance check
+### Using custom persistence check
 
 When using Guids as primary keys you're most likely to add a cluster index that is auto incremented. 
 That field can be used to check if the state is already inserted into the database or not:
@@ -116,12 +129,22 @@ services
     )
 ```
 
-If you use different cluster indices than your primary keys you can configure the dafaults to write less configuration code:
+or 
+
+```
+services
+    .ConfigureGrainStorageOptions<FatDbContext, SpecialBoxGrain, SpecialBox>(
+        options => options
+            .CheckPersistenceOn(box => box.ClusterIndexId)
+    )
+```
+
+If you use different cluster indices (In case of mssqlserver) than your primary keys you can configure the dafaults to write less configuration code:
 
 ```
 services.Configure<GrainStorageConventionOptions>(options =>
 {
-    options.DefaultPersistanceCheckPropertyName = "ClusterIndexId";
+    options.DefaultPersistenceCheckPropertyName = "ClusterIndexId";
 });
 ```
 

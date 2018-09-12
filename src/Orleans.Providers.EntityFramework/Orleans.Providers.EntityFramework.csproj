@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>0.10.0</VersionPrefix>
+    <VersionPrefix>0.11.0</VersionPrefix>
     <Title>Orleans.Providers.EntityFramework</Title>
     <Authors>alirezajm</Authors>
     <Company></Company>

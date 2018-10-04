@@ -33,6 +33,11 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey,
                     ConfiguredEntityWithCustomGuidKey>(
                     options => options
+                        .UseKey(entity => entity.CustomKey))
+
+                .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey2,
+                    ConfiguredEntityWithCustomGuidKey>(
+                    options => options
                         .UseKey(entity => entity.CustomKey)
                         .UseKeyExt(entity => entity.CustomKeyExt))
 

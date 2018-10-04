@@ -81,7 +81,6 @@ namespace Orleans.Providers.EntityFramework
                 if (GrainStorageContext<TGrainState>.IsConfigured)
                 {
                     GrainStorageContext<TGrainState>.ConfigureStateDelegate(entry);
-                    GrainStorageContext<TGrainState>.Clear();
                 }
                 else
                 {

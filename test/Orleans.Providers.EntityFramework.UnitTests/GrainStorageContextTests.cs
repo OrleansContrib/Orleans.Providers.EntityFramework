@@ -53,6 +53,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
             Assert.NotEqual("Should not get updated", stored?.KeyExt);
 
 
+            GrainStorageContext<EntityWithIntegerKey>.Clear();
             // Future updates should update the whole object if not configured
             await _storage.WriteStateAsync(typeof(GrainWithIntegerKey).FullName,
                 grainRef,

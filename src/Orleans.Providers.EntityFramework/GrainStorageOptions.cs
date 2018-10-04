@@ -31,7 +31,7 @@ namespace Orleans.Providers.EntityFramework
 
     }
 
-    public class GrainStorageOptions<TContext, TGrainState> : GrainStorageOptions
+    public class GrainStorageOptions<TContext, TGrain, TGrainState> : GrainStorageOptions
         where TContext : DbContext
     {
         internal Func<TContext, IQueryable<TGrainState>> ReadQuery { get; set; }

@@ -9,15 +9,15 @@ namespace Orleans.Providers.EntityFramework.Extensions
     {
         public static IServiceCollection ConfigureGrainStorageOptions<TContext, TGrain, TGrainState>(
             this IServiceCollection services,
-            Action<GrainStorageOptions<TContext, TGrainState>> configureOptions = null)
+            Action<GrainStorageOptions<TContext, TGrain, TGrainState>> configureOptions = null)
             where TContext : DbContext
             where TGrain : Grain<TGrainState>
             where TGrainState : class, new()
         {
             return services
-                .AddSingleton<IPostConfigureOptions<GrainStorageOptions<TContext, TGrainState>>,
+                .AddSingleton<IPostConfigureOptions<GrainStorageOptions<TContext, TGrain, TGrainState>>,
                     GrainStoragePostConfigureOptions<TContext, TGrain, TGrainState>>()
-                .Configure<GrainStorageOptions<TContext, TGrainState>>(typeof(TGrain).FullName, options =>
+                .Configure<GrainStorageOptions<TContext, TGrain, TGrainState>>(typeof(TGrain).FullName, options =>
                 {
                     configureOptions?.Invoke(options);
                 });

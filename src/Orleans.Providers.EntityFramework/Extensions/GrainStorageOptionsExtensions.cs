@@ -10,8 +10,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
 {
     public static class GrainStorageOptionsExtensions
     {
-        public static GrainStorageOptions<TContext, TGrainState> UseQuery<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseQuery<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Func<TContext, IQueryable<TGrainState>> queryFunc)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -20,8 +20,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> ConfigureIsPersisted<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> ConfigureIsPersisted<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Func<TGrainState, bool> isPersistedFunc)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -38,8 +38,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
         /// <param name="options"></param>
         /// <param name="expressionFunc"></param>
         /// <returns></returns>
-        public static GrainStorageOptions<TContext, TGrainState> UseQueryExpression<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseQueryExpression<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Func<IAddressable, Expression<Func<TGrainState, bool>>> expressionFunc)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -60,8 +60,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
         /// <typeparam name="TGrainState"></typeparam>
         /// <param name="options"></param>
         /// <returns></returns>
-        public static GrainStorageOptions<TContext, TGrainState> UseETag<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options)
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseETag<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options)
             where TContext : DbContext
             where TGrainState : class, new()
         {
@@ -69,8 +69,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> UseETag<TContext, TGrainState, TProperty>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseETag<TContext, TGrain, TGrainState, TProperty>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, TProperty>> expression)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -88,8 +88,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> UseETag<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseETag<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             string propertyName)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -103,8 +103,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> UseKey<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseKey<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, Guid>> expression)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -121,8 +121,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> UseKey<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseKey<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, long>> expression)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -139,8 +139,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> UseKey<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseKey<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, string>> expression)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -157,8 +157,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> UseKey<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseKey<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             string propertyName)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -171,8 +171,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> UseKeyExt<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseKeyExt<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, string>> expression)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -189,8 +189,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> UseKeyExt<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseKeyExt<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             string propertyName)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -203,8 +203,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> CheckPersistenceOn<TContext, TGrainState, TProperty>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> CheckPersistenceOn<TContext, TGrain, TGrainState, TProperty>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, TProperty>> expression)
             where TContext : DbContext
             where TGrainState : class, new()
@@ -221,8 +221,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return options;
         }
 
-        public static GrainStorageOptions<TContext, TGrainState> CheckPersistenceOn<TContext, TGrainState>(
-            this GrainStorageOptions<TContext, TGrainState> options,
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> CheckPersistenceOn<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             string propertyName)
             where TContext : DbContext
             where TGrainState : class, new()

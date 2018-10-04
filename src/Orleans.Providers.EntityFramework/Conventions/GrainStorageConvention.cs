@@ -385,8 +385,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
 
         #region ETag
 
-        public void FindAndConfigureETag<TContext, TGrainState>(
-            GrainStorageOptions<TContext, TGrainState> options,
+        public void FindAndConfigureETag<TContext, TGrain, TGrainState>(
+            GrainStorageOptions<TContext, TGrain, TGrainState> options,
             bool throwIfNotFound)
             where TContext : DbContext
         {
@@ -407,9 +407,9 @@ namespace Orleans.Providers.EntityFramework.Conventions
             }
         }
 
-        public void ConfigureETag<TContext, TGrainState>(
+        public void ConfigureETag<TContext, TGrain, TGrainState>(
             string propertyName,
-            GrainStorageOptions<TContext, TGrainState> options)
+            GrainStorageOptions<TContext, TGrain, TGrainState> options)
             where TContext : DbContext
         {
             if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
@@ -428,9 +428,9 @@ namespace Orleans.Providers.EntityFramework.Conventions
             }
         }
 
-        private static bool FindAndConfigureETag<TContext, TGrainState>(
+        private static bool FindAndConfigureETag<TContext, TGrain, TGrainState>(
             IEntityType entityType,
-            GrainStorageOptions<TContext, TGrainState> options)
+            GrainStorageOptions<TContext, TGrain, TGrainState> options)
             where TContext : DbContext
         {
             if (entityType == null) throw new ArgumentNullException(nameof(entityType));
@@ -452,10 +452,10 @@ namespace Orleans.Providers.EntityFramework.Conventions
         }
 
 
-        private static void ConfigureETag<TContext, TGrainState>(
+        private static void ConfigureETag<TContext, TGrain, TGrainState>(
             IEntityType entityType,
             string propertyName,
-            GrainStorageOptions<TContext, TGrainState> options)
+            GrainStorageOptions<TContext, TGrain, TGrainState> options)
             where TContext : DbContext
         {
             if (entityType == null) throw new ArgumentNullException(nameof(entityType));
@@ -472,9 +472,9 @@ namespace Orleans.Providers.EntityFramework.Conventions
         }
 
 
-        private static void ConfigureETag<TContext, TGrainState>(
+        private static void ConfigureETag<TContext, TGrain, TGrainState>(
             IProperty property,
-            GrainStorageOptions<TContext, TGrainState> options)
+            GrainStorageOptions<TContext, TGrain, TGrainState> options)
             where TContext : DbContext
         {
             if (property == null) throw new ArgumentNullException(nameof(property));

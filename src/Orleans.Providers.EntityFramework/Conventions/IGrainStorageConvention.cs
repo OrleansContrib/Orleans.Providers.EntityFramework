@@ -79,7 +79,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <param name="throwIfNotFound">Indicates if failure of finding an ETag property should throw</param>
         /// <typeparam name="TContext"></typeparam>
         /// <typeparam name="TGrainState"></typeparam>
-        void FindAndConfigureETag<TContext, TGrainState>(GrainStorageOptions<TContext, TGrainState> options,
+        /// <typeparam name="TGrain"></typeparam>
+        void FindAndConfigureETag<TContext, TGrain, TGrainState>(GrainStorageOptions<TContext, TGrain, TGrainState> options,
             bool throwIfNotFound)
             where TContext : DbContext;
 
@@ -90,7 +91,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <param name="options"></param>
         /// <typeparam name="TContext"></typeparam>
         /// <typeparam name="TGrainState"></typeparam>
-        void ConfigureETag<TContext, TGrainState>(string propertyName, GrainStorageOptions<TContext, TGrainState> options)
+        /// <typeparam name="TGrain"></typeparam>
+        void ConfigureETag<TContext, TGrain, TGrainState>(string propertyName, GrainStorageOptions<TContext, TGrain, TGrainState> options)
             where TContext : DbContext;
     }
 

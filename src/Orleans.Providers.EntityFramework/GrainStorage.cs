@@ -13,19 +13,20 @@ using Orleans.Storage;
 
 namespace Orleans.Providers.EntityFramework
 {
-    internal class GrainStorage<TContext, TGrainState> : IGrainStorage
+    internal class GrainStorage<TContext, TGrain, TGrainState> : IGrainStorage
         where TContext : DbContext
+        where TGrain : Grain<TGrainState>
         where TGrainState : class, new()
     {
-        private readonly GrainStorageOptions<TContext, TGrainState> _options;
+        private readonly GrainStorageOptions<TContext, TGrain, TGrainState> _options;
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly ILogger<GrainStorage<TContext, TGrainState>> _logger;
+        private readonly ILogger<GrainStorage<TContext, TGrain, TGrainState>> _logger;
         private readonly IServiceProvider _serviceProvider;
 
         public GrainStorage(
-            GrainStorageOptions<TContext, TGrainState> options,
+            GrainStorageOptions<TContext, TGrain, TGrainState> options,
             IServiceScopeFactory serviceScopeFactory,
-            ILogger<GrainStorage<TContext, TGrainState>> logger)
+            ILogger<GrainStorage<TContext, TGrain, TGrainState>> logger)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _scopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
@@ -40,8 +41,8 @@ namespace Orleans.Providers.EntityFramework
                                ?? throw new ArgumentNullException(nameof(serviceProvider));
 
             var loggerFactory = _serviceProvider.GetService<ILoggerFactory>();
-            _logger = loggerFactory?.CreateLogger<GrainStorage<TContext, TGrainState>>()
-                      ?? NullLogger<GrainStorage<TContext, TGrainState>>.Instance;
+            _logger = loggerFactory?.CreateLogger<GrainStorage<TContext, TGrain, TGrainState>>()
+                      ?? NullLogger<GrainStorage<TContext, TGrain, TGrainState>>.Instance;
 
             _scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
             _options = GetOrCreateDefaultOptions(grainType);
@@ -68,7 +69,7 @@ namespace Orleans.Providers.EntityFramework
 
         public async Task WriteStateAsync(string grainType, GrainReference grainReference, IGrainState grainState)
         {
-            var state = (TGrainState) grainState.State;
+            var state = (TGrainState)grainState.State;
             bool isPersisted = _options.IsPersistedFunc(state);
 
             using (IServiceScope scope = _scopeFactory.CreateScope())
@@ -113,7 +114,7 @@ namespace Orleans.Providers.EntityFramework
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
             {
-                EntityEntry<TGrainState> entry = context.Entry((TGrainState) grainState.State);
+                EntityEntry<TGrainState> entry = context.Entry((TGrainState)grainState.State);
 
                 entry.State = EntityState.Deleted;
                 await context.SaveChangesAsync();
@@ -121,28 +122,22 @@ namespace Orleans.Providers.EntityFramework
         }
 
 
-        private GrainStorageOptions<TContext, TGrainState> GetOrCreateDefaultOptions(string grainType)
+        private GrainStorageOptions<TContext, TGrain, TGrainState> GetOrCreateDefaultOptions(string grainType)
         {
             var options
-                = _serviceProvider.GetOptionsByName<GrainStorageOptions<TContext, TGrainState>>(grainType);
+                = _serviceProvider.GetOptionsByName<GrainStorageOptions<TContext, TGrain, TGrainState>>(grainType);
 
             if (options.IsConfigured)
                 return options;
 
             // Try generating a default options for the grain
-            Type grainImplType = AppDomain.CurrentDomain.GetAssemblies()
-                .Select(a => a.GetType(grainType, false))
-                .FirstOrDefault(t => t != null);
-            if (grainImplType == null)
-                throw new Exception($"Could not load \"{grainType}\" type. Try configuring grain options.");
-
 
             Type optionsType = typeof(GrainStoragePostConfigureOptions<,,>).MakeGenericType(
                 typeof(TContext),
-                grainImplType,
+                typeof(TGrain),
                 typeof(TGrainState));
 
-            var postConfigure = (IPostConfigureOptions<GrainStorageOptions<TContext, TGrainState>>)
+            var postConfigure = (IPostConfigureOptions<GrainStorageOptions<TContext, TGrain, TGrainState >>)
                 Activator.CreateInstance(optionsType, _serviceProvider);
 
             postConfigure.PostConfigure(grainType, options);

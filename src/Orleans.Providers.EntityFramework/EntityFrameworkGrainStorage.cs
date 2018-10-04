@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Orleans.Runtime;
@@ -54,8 +55,16 @@ namespace Orleans.Providers.EntityFramework
                 ? grainState.GetType().GenericTypeArguments[0]
                 : grainState.State.GetType();
 
-            Type storageType = typeof(GrainStorage<,>)
-                .MakeGenericType(typeof(TContext), stateType);
+
+            Type grainImplType = AppDomain.CurrentDomain.GetAssemblies()
+                .Select(a => a.GetType(grainType, false))
+                .FirstOrDefault(t => t != null);
+            if (grainImplType == null)
+                throw new Exception($"Could not load \"{grainType}\" type. Try configuring grain options.");
+
+
+            Type storageType = typeof(GrainStorage<,,>)
+                .MakeGenericType(typeof(TContext), grainImplType, stateType);
 
             IGrainStorage storage;
 

@@ -7,7 +7,7 @@ using Orleans.Providers.EntityFramework.Conventions;
 namespace Orleans.Providers.EntityFramework
 {
     public class GrainStoragePostConfigureOptions<TContext, TGrain, TGrainState>
-        : IPostConfigureOptions<GrainStorageOptions<TContext, TGrainState>>
+        : IPostConfigureOptions<GrainStorageOptions<TContext, TGrain, TGrainState>>
         where TContext : DbContext
         where TGrain : Grain<TGrainState>
         where TGrainState : class, new()
@@ -23,8 +23,11 @@ namespace Orleans.Providers.EntityFramework
                 serviceProvider.GetService(typeof(IGrainStorageConvention<TContext, TGrainState>));
         }
 
-        public void PostConfigure(string name, GrainStorageOptions<TContext, TGrainState> options)
+        public void PostConfigure(string name, GrainStorageOptions<TContext, TGrain, TGrainState> options)
         {
+            if (!string.Equals(name, typeof(TGrain).FullName))
+                throw new Exception("Post configure on wrong grain type.");
+
             if (options.ReadQuery == null)
                 options.ReadQuery = Convention?.CreateDefaultQueryFunc()
                                     ?? DefaultConvention.CreateDefaultQueryFunc<TContext, TGrainState>();

@@ -10,11 +10,11 @@ Nuget: https://www.nuget.org/packages/Orleans.Providers.EntityFramework/
 
 or
 
-```dotnet add package Orleans.Providers.EntityFramework --version 0.11.0```
+```dotnet add package Orleans.Providers.EntityFramework --version 0.12.0```
 
 or 
 
-```Install-Package Orleans.Providers.EntityFramework --version 0.11.0```
+```Install-Package Orleans.Providers.EntityFramework --version 0.12.0```
 
 
 And configure the storage provider using SiloHostBuilder:
@@ -182,6 +182,25 @@ services
             .UseETag(box => box.ETag)
     )
 ```
+
+## Controlling how the state is saved
+
+When calling writeState, the state object is attached to a context and its state (EF entry state) would be set to Added or Modified.
+You can change this behaviour by using ```GrainStorageContext```
+
+```
+GrainStorageContext<Box>.ConfigureEntryState(
+    entry => entry.State.Title = EntityState.Modified);
+```
+
+This way only the Title field would be updated.
+
+Things to consider:
+
+- When configuring the entry manually, the storage provider only attaches the state to the context and doesn't set the entry state. So for example if you call this ```GrainStorageContext<Box>.ConfigureEntryState(entry => {});``` the write operation does nothing.
+
+- Because GrainStorageContext uses async locals you have to call ```GrainStorageContext<Box>.Clear()``` if you want to do multiple writes on the same asynchronous operation.
+
 
 ## Known Issues and Limitations
 

@@ -58,7 +58,8 @@ namespace Orleans.Providers.EntityFramework
             {
                 TGrainState state = await
                     _options.ReadQuery(context)
-                        .SingleOrDefaultAsync(expression);
+                        .SingleOrDefaultAsync(expression)
+                        .ConfigureAwait(false);
 
                 grainState.State = state;
 
@@ -80,6 +81,7 @@ namespace Orleans.Providers.EntityFramework
                 if (GrainStorageContext<TGrainState>.IsConfigured)
                 {
                     GrainStorageContext<TGrainState>.ConfigureStateDelegate(entry);
+                    GrainStorageContext<TGrainState>.Clear();
                 }
                 else
                 {
@@ -90,7 +92,8 @@ namespace Orleans.Providers.EntityFramework
 
                 try
                 {
-                    await context.SaveChangesAsync();
+                    await context.SaveChangesAsync()
+                        .ConfigureAwait(false);
 
                     if (_options.CheckForETag)
                         grainState.ETag = _options.GetETagFunc(state);
@@ -117,7 +120,8 @@ namespace Orleans.Providers.EntityFramework
                 EntityEntry<TGrainState> entry = context.Entry((TGrainState)grainState.State);
 
                 entry.State = EntityState.Deleted;
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
         }
 
@@ -137,7 +141,7 @@ namespace Orleans.Providers.EntityFramework
                 typeof(TGrain),
                 typeof(TGrainState));
 
-            var postConfigure = (IPostConfigureOptions<GrainStorageOptions<TContext, TGrain, TGrainState >>)
+            var postConfigure = (IPostConfigureOptions<GrainStorageOptions<TContext, TGrain, TGrainState>>)
                 Activator.CreateInstance(optionsType, _serviceProvider);
 
             postConfigure.PostConfigure(grainType, options);

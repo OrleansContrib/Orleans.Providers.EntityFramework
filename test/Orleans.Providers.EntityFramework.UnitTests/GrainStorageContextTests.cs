@@ -46,11 +46,24 @@ namespace Orleans.Providers.EntityFramework.UnitTests
             grainState);
 
 
-            var actual = (EntityWithIntegerKey)
+            var stored = (EntityWithIntegerKey)
                 Internal.Utils.FetchEntityFromDb(_serviceProvider, grainState.State);
 
-            Assert.Equal("Should get updated", actual?.Title);
-            Assert.NotEqual("Should not get updated", actual?.KeyExt);
+            Assert.Equal("Should get updated", stored?.Title);
+            Assert.NotEqual("Should not get updated", stored?.KeyExt);
+
+
+            // Future updates should update the whole object if not configured
+            await _storage.WriteStateAsync(typeof(GrainWithIntegerKey).FullName,
+                grainRef,
+                grainState);
+
+            stored = (EntityWithIntegerKey)
+                Internal.Utils.FetchEntityFromDb(_serviceProvider, grainState.State);
+
+            Assert.Equal(stored, grainState.State);
+
+
         }
     }
 }

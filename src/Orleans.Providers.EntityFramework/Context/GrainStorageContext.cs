@@ -36,7 +36,7 @@ namespace Orleans.Providers.EntityFramework
         public static void Clear()
         {
             ConfigureStateDelegateLocal.Value = null;
-            IsConfiguredLocal.Value = true;
+            IsConfiguredLocal.Value = false;
         }
     }
 }

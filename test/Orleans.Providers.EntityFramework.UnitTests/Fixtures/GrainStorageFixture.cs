@@ -6,6 +6,7 @@ using Orleans.Providers.EntityFramework.Extensions;
 using Orleans.Providers.EntityFramework.UnitTests.Grains;
 using Orleans.Providers.EntityFramework.UnitTests.Internal;
 using Orleans.Providers.EntityFramework.UnitTests.Models;
+using Orleans.Runtime;
 using Orleans.Storage;
 
 namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
@@ -25,6 +26,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 {
                     builder.UseInMemoryDatabase(Guid.NewGuid().ToString());
                 })
+                .AddSingleton<ITypeResolver, TypeResolver>()
 
                 .AddSingleton<IGrainStorageConvention, GrainStorageConvention>()
                 // Simple key grains with default key properties on state model

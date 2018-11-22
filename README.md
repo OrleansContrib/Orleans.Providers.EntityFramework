@@ -1,6 +1,8 @@
 # Orleans.Providers.EntityFramework
 An Entity Framework Core implementation of Orleans Grain Storage.
 
+There are some nice to have features missing. I didn't needed them particularly but If you have suggestions or want to help out, it would be much appreciated.
+
 [![AppVeyor](https://img.shields.io/appveyor/ci/alirezajm/orleans-providers-entityframework.svg)](https://ci.appveyor.com/project/alirezajm/orleans-providers-entityframework)
 [![NuGet](https://img.shields.io/nuget/v/Orleans.Providers.EntityFramework.svg)](https://www.nuget.org/packages/Orleans.Providers.EntityFramework)
 

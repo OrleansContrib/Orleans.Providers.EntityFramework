@@ -173,7 +173,7 @@ services
 
 Using **UseETag** overload with no params instructs the storage to find an ETag property. If no valid property was found, an exception would be thrown.
 
-Use the following overload to explicitly configure the storage to use the provided property. If the property is not marked as **ConcurrencyCheck** an exception would be throw.
+Use the following overload to explicitly configure the storage to use the provided property. If the property is not marked as **ConcurrencyCheck** an exception would be thrown.
 
 ```
 services
@@ -190,7 +190,7 @@ You can change this behaviour by using ```GrainStorageContext```
 
 ```
 GrainStorageContext<Box>.ConfigureEntryState(
-    entry => entry.State.Title = EntityState.Modified);
+    entry => entry.Property(e => e.Title).IsModified = true);
 ```
 
 This way only the Title field would be updated.

@@ -90,5 +90,41 @@ namespace Orleans.Providers.EntityFramework.UnitTests
 
             Assert.Equal(expected, grainState.ETag);
         }
+
+        [Fact]
+        public async Task ReadTaggedEntityShouldSuccessForNullState()
+        {
+            GrainState<EntityWithIntegerKeyWithEtag> grainState =
+                new GrainState<EntityWithIntegerKeyWithEtag>();
+
+            TestGrainReference grainRef
+                = TestGrainReference.Create<GrainWithIntegerKeyWithEtag>(0);
+
+            await _storage.ReadStateAsync(typeof(GrainWithIntegerKeyWithEtag).FullName,
+                grainRef,
+                grainState);
+
+            Assert.Null(grainState.ETag);
+        }
+
+        [Fact]
+        public async Task ReadTaggedEntityShouldSuccessForNullEtag()
+        {
+            GrainState<EntityWithIntegerKeyWithEtag> grainState =
+                Internal.Utils.StoreGrainState<EntityWithIntegerKeyWithEtag>(_serviceProvider,
+                new EntityWithIntegerKeyWithEtag
+                {
+                    ETag = null
+                });
+
+            TestGrainReference grainRef
+                = TestGrainReference.Create(grainState.State);
+
+            await _storage.ReadStateAsync(typeof(GrainWithIntegerKeyWithEtag).FullName,
+                grainRef,
+                grainState);
+
+            Assert.Null(grainState.ETag);
+        }
     }
 }

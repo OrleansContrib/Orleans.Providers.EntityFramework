@@ -65,10 +65,17 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
         public static GrainState<TEntity> CreateAndStoreGrainState<TEntity>(IServiceProvider serviceProvider)
             where TEntity : class, new()
         {
+            return StoreGrainState(serviceProvider, new TEntity());
+        }
+
+        public static GrainState<TEntity> StoreGrainState<TEntity>(IServiceProvider serviceProvider, TEntity entity)
+            where TEntity : class, new()
+        {
+            if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
             using (IServiceScope scope = serviceProvider.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-                var entity = new TEntity();
                 // Somehow ef is ignoring IsPersisted property value conversion
                 var d = (dynamic)entity;
                 d.IsPersisted = true;

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.12.0</Version>
+    <Version>0.13.0</Version>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>0.12.0</VersionPrefix>
+    <VersionPrefix>0.13.0</VersionPrefix>
     <Title>Orleans.Providers.EntityFramework</Title>
     <Authors>alirezajm</Authors>
     <Company></Company>

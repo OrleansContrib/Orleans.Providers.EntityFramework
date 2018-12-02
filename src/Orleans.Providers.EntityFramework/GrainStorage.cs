@@ -63,7 +63,7 @@ namespace Orleans.Providers.EntityFramework
 
                 grainState.State = state;
 
-                if (_options.CheckForETag)
+                if (state != null && _options.CheckForETag)
                     grainState.ETag = _options.GetETagFunc(state);
             }
         }

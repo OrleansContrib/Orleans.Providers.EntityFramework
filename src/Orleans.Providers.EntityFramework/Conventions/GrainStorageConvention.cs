@@ -511,6 +511,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
 
         private static string ConvertETagObjectToString(object obj)
         {
+            if (obj == null)
+                return null;
             switch (obj)
             {
                 case byte[] bytes:

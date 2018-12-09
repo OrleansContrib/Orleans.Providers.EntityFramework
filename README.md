@@ -12,11 +12,11 @@ Nuget: https://www.nuget.org/packages/Orleans.Providers.EntityFramework/
 
 or
 
-```dotnet add package Orleans.Providers.EntityFramework --version 0.12.0```
+```dotnet add package Orleans.Providers.EntityFramework --version 0.13.0```
 
 or 
 
-```Install-Package Orleans.Providers.EntityFramework --version 0.12.0```
+```Install-Package Orleans.Providers.EntityFramework --version 0.13.0```
 
 
 And configure the storage provider using SiloHostBuilder:

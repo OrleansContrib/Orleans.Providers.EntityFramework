@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Providers.EntityFramework.Conventions;
 using Orleans.Providers.EntityFramework.Extensions;
@@ -28,14 +32,17 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 })
                 .AddSingleton<ITypeResolver, TypeResolver>()
 
-                .AddSingleton<IGrainStorageConvention, GrainStorageConvention>()
+                .AddSingleton<IGrainStorageConvention, GrainStorageConventionV2>()
                 // Simple key grains with default key properties on state model
                 // should work out of the box without configuration.
 
                 .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey,
                     ConfiguredEntityWithCustomGuidKey>(
-                    options => options
-                        .UseKey(entity => entity.CustomKey))
+                    options =>
+                    {
+                        options
+                            .UseKey(entity => entity.CustomKey);
+                    })
 
                 .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey2,
                     ConfiguredEntityWithCustomGuidKey>(

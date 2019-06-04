@@ -50,16 +50,11 @@ namespace Orleans.Providers.EntityFramework
 
         public async Task ReadStateAsync(string grainType, GrainReference grainReference, IGrainState grainState)
         {
-            Expression<Func<TGrainState, bool>> expression
-                = _options.QueryExpressionGeneratorFunc(grainReference);
 
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
             {
-                TGrainState state = await
-                    _options.ReadQuery(context)
-                        .SingleOrDefaultAsync(expression)
-                        .ConfigureAwait(false);
+                TGrainState state = await _options.ReadStateAsync(context, grainReference).ConfigureAwait(false);
 
                 grainState.State = state;
 

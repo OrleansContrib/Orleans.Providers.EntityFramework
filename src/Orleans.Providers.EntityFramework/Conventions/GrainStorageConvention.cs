@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,36 +27,36 @@ namespace Orleans.Providers.EntityFramework.Conventions
 
         #region Default Query
 
-        public virtual Func<TContext, IQueryable<TGrainState>> CreateDefaultQueryFunc<TContext, TGrainState>()
+        public virtual Func<TContext, IQueryable<TGrainState>> CreateDefaultDbSetAccessorFunc<TContext, TGrainState>()
             where TContext : DbContext
             where TGrainState : class, new()
         {
             Type contextType = typeof(TContext);
 
-            // Find a dbset<TGrainState> as default
-            PropertyInfo dbsetPropertyInfo =
+            // Find a dbSet<TGrainState> as default
+            PropertyInfo dbSetPropertyInfo =
                 contextType
                     .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .FirstOrDefault(pinfo => pinfo.PropertyType == typeof(DbSet<TGrainState>));
+                    .FirstOrDefault(pInfo => pInfo.PropertyType == typeof(DbSet<TGrainState>));
 
-            if (dbsetPropertyInfo == null)
+            if (dbSetPropertyInfo == null)
                 throw new GrainStorageConfigurationException($"Could not find A property of type \"{typeof(DbSet<TGrainState>).FullName}\" " +
                                     $"on context with type \"{typeof(TContext).FullName}\"");
 
-            var dbsetDelegate = (Func<TContext, IQueryable<TGrainState>>)Delegate.CreateDelegate(
+            var dbSetDelegate = (Func<TContext, IQueryable<TGrainState>>)Delegate.CreateDelegate(
                 typeof(Func<TContext, IQueryable<TGrainState>>),
                 null,
-                dbsetPropertyInfo.GetMethod);
+                dbSetPropertyInfo.GetMethod);
 
             // set queries as no tracking
             MethodInfo noTrackingMethodInfo = (this.GetType().GetMethod(nameof(AsNoTracking))
                                         ?? throw new Exception("Impossible"))
                 .MakeGenericMethod(typeof(TContext), typeof(TGrainState));
 
-            // create final delegate which chains dbset getter and no tracking delegates
+            // create final delegate which chains dbSet getter and no tracking delegates
             return (Func<TContext, IQueryable<TGrainState>>)Delegate.CreateDelegate(
                 typeof(Func<TContext, IQueryable<TGrainState>>),
-                dbsetDelegate,
+                dbSetDelegate,
                 noTrackingMethodInfo);
         }
 
@@ -65,6 +66,31 @@ namespace Orleans.Providers.EntityFramework.Conventions
             where TContext : DbContext
             where TGrainState : class, new()
             => func(context).AsNoTracking();
+
+        public Func<TContext, IAddressable, Task<TGrainState>>
+            CreateDefaultReadStateFunc<TContext, TGrain, TGrainState>(
+                GrainStorageOptions<TContext, TGrain, TGrainState> options)
+            where TContext : DbContext
+        {
+            throw new NotImplementedException();
+        }
+
+        public Func<TContext, IAddressable, Task<TGrainState>>
+            CreatePreCompiledDefaultReadStateFunc<TContext, TGrain, TGrainState>(
+                GrainStorageOptions<TContext, TGrain, TGrainState> options)
+            where TContext : DbContext
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetDefaultKeySelectors<TContext, TGrain, TGrainState>(
+            GrainStorageOptions<TContext, TGrain, TGrainState> options)
+            where TContext : DbContext
+        {
+            throw new NotImplementedException();
+        }
+
+
 
         #endregion
 

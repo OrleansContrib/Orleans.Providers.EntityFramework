@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Orleans.Runtime;
 
@@ -16,7 +17,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <typeparam name="TGrainState"></typeparam>
         /// <returns></returns>
         Func<TContext, IQueryable<TGrainState>>
-            CreateDefaultQueryFunc<TContext, TGrainState>()
+            CreateDefaultDbSetAccessorFunc<TContext, TGrainState>()
             where TContext : DbContext
             where TGrainState : class, new();
 
@@ -24,7 +25,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <summary>
         /// Creates a method that generates an expression to be used by entity framework to
         /// fetch a single state using default property (Id). The default implementation 
-        /// behaiviour is configurable using <see cref="GrainStorageConventionOptions"/>.
+        /// behaviour is configurable using <see cref="GrainStorageConventionOptions"/>.
         /// </summary>
         /// <typeparam name="TGrain"></typeparam>
         /// <typeparam name="TGrainState"></typeparam>
@@ -61,6 +62,20 @@ namespace Orleans.Providers.EntityFramework.Conventions
                 Func<IAddressable, string> getGrainIdFunc,
                 string stateIdPropertyName);
 
+        Func<TContext, IAddressable, Task<TGrainState>>
+            CreateDefaultReadStateFunc<TContext, TGrain, TGrainState>(
+                GrainStorageOptions<TContext, TGrain, TGrainState> options)
+            where TContext: DbContext;
+
+        Func<TContext, IAddressable, Task<TGrainState>>
+            CreatePreCompiledDefaultReadStateFunc<TContext, TGrain, TGrainState>(
+                GrainStorageOptions<TContext, TGrain, TGrainState> options)
+            where TContext : DbContext;
+
+        void SetDefaultKeySelectors<TContext, TGrain, TGrainState>(
+            GrainStorageOptions<TContext, TGrain, TGrainState> options)
+            where TContext : DbContext;
+
         // todo: support composite key grains
 
         /// <summary>
@@ -96,7 +111,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             where TContext : DbContext;
     }
 
-    public interface IGrainStorageConvention<in TContext, TGrainState>
+    public interface IGrainStorageConvention<TContext, TGrain, TGrainState>
         where TContext : DbContext
         where TGrainState : class, new()
     {
@@ -108,7 +123,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <typeparam name="TGrainState"></typeparam>
         /// <returns></returns>
         Func<TContext, IQueryable<TGrainState>>
-            CreateDefaultQueryFunc();
+            CreateDefaultDbSetAccessorFunc();
 
         /// <summary>
         /// Creates a method that generates an expression to be used by entity framework to 
@@ -118,5 +133,12 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <returns></returns>
         Func<IAddressable, Expression<Func<TGrainState, bool>>>
             CreateGrainStateQueryExpressionGeneratorFunc();
+
+        Func<TContext, IAddressable, Task<TGrainState>> CreateDefaultReadStateFunc();
+
+        Func<TContext, IAddressable, Task<TGrainState>> CreatePreCompiledDefaultReadStateFunc(
+             GrainStorageOptions<TContext, TGrain, TGrainState> options);
+
+        void SetDefaultKeySelector(GrainStorageOptions<TContext, TGrain, TGrainState> options);
     }
 }

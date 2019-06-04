@@ -24,7 +24,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             return builder
                 .ConfigureServices(services =>
                 {
-                    services.AddSingleton<IGrainStorageConvention, GrainStorageConvention>()
+                    services.AddSingleton<IGrainStorageConvention, GrainStorageConventionV2>()
                         .AddSingleton<EntityFrameworkGrainStorage<TContext>>();
 
                     services.TryAddSingleton<IGrainStorage>(sp =>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Orleans.Runtime;
@@ -29,17 +30,24 @@ namespace Orleans.Providers.EntityFramework
 
         internal bool IsConfigured { get; set; }
 
+        internal bool PreCompileReadQuery { get; set; } = false;
     }
 
     public class GrainStorageOptions<TContext, TGrain, TGrainState> : GrainStorageOptions
         where TContext : DbContext
     {
-        internal Func<TContext, IQueryable<TGrainState>> ReadQuery { get; set; }
-
-        internal Func<IAddressable, Expression<Func<TGrainState, bool>>> QueryExpressionGeneratorFunc { get; set; }
+        internal Func<TContext, IQueryable<TGrainState>> DbSetAccessor { get; set; }
 
         internal Func<TGrainState, bool> IsPersistedFunc { get; set; }
 
         internal Func<TGrainState, string> GetETagFunc { get; set; }
+
+        internal Func<TGrainState, Guid> GuidKeySelector { get; set; }
+
+        internal Func<TGrainState, string> KeyExtSelector { get; set; }
+
+        internal Func<TGrainState, long> LongKeySelector { get; set; }
+
+        internal Func<TContext, IAddressable, Task<TGrainState>> ReadStateAsync { get; set; }
     }
 }

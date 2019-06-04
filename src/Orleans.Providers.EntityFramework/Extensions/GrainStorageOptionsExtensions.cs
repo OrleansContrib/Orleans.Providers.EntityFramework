@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Orleans.Providers.EntityFramework.Exceptions;
 using Orleans.Runtime;
@@ -16,7 +17,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             where TContext : DbContext
             where TGrainState : class, new()
         {
-            options.ReadQuery = queryFunc;
+            options.DbSetAccessor = queryFunc;
             return options;
         }
 
@@ -31,23 +32,45 @@ namespace Orleans.Providers.EntityFramework.Extensions
         }
 
         /// <summary>
-        /// Configures the expression used to query grain state from database.
+        /// Instructs the storage provider to precompile read query.
+        /// This will lead to better performance for complex queries.
+        /// Default is to precompile.
+        /// </summary>
+        /// <typeparam name="TContext"></typeparam>
+        /// <typeparam name="TGrain"></typeparam>
+        /// <typeparam name="TGrainState"></typeparam>
+        /// <param name="options"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> PreCompileReadQuery<TContext, TGrain, TGrainState>(
+            this GrainStorageOptions<TContext, TGrain, TGrainState> options,
+            bool value = true)
+            where TContext : DbContext
+            where TGrainState : class, new()
+        {
+            options.PreCompileReadQuery = value;
+            return options;
+        }
+
+
+        /// <summary>
+        /// Overrides the default implementation used to query grain state from database.
         /// </summary>
         /// <typeparam name="TContext"></typeparam>
         /// <typeparam name="TGrainState"></typeparam>
+        /// <typeparam name="TGrain"></typeparam>
         /// <param name="options"></param>
-        /// <param name="expressionFunc"></param>
+        /// <param name="readStateAsyncFunc"></param>
         /// <returns></returns>
-        public static GrainStorageOptions<TContext, TGrain, TGrainState> UseQueryExpression<TContext, TGrain, TGrainState>(
+        public static GrainStorageOptions<TContext, TGrain, TGrainState> ConfigureReadState<TContext, TGrain, TGrainState>(
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
-            Func<IAddressable, Expression<Func<TGrainState, bool>>> expressionFunc)
+            Func<TContext, IAddressable, Task<TGrainState>> readStateAsyncFunc)
             where TContext : DbContext
             where TGrainState : class, new()
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
-            if (expressionFunc == null) throw new ArgumentNullException(nameof(expressionFunc));
 
-            options.QueryExpressionGeneratorFunc = expressionFunc;
+            options.ReadStateAsync = readStateAsyncFunc ?? throw new ArgumentNullException(nameof(readStateAsyncFunc));
             return options;
         }
 
@@ -58,6 +81,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
         /// </summary>
         /// <typeparam name="TContext"></typeparam>
         /// <typeparam name="TGrainState"></typeparam>
+        /// <typeparam name="TGrain"></typeparam>
         /// <param name="options"></param>
         /// <returns></returns>
         public static GrainStorageOptions<TContext, TGrain, TGrainState> UseETag<TContext, TGrain, TGrainState>(

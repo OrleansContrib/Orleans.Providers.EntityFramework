@@ -25,5 +25,13 @@ namespace Orleans.Providers.EntityFramework.Utils
 
             return idProperty;
         }
+
+        public static Func<T, TProperty> GetAccessorDelegate<T, TProperty>(PropertyInfo pInfo)
+        {
+            return (Func<T, TProperty>)Delegate.CreateDelegate(
+                typeof(Func<T, TProperty>),
+                null,
+                pInfo.GetMethod);
+        }
     }
 }

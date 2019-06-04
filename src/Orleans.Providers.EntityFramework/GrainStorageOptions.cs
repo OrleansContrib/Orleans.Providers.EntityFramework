@@ -30,7 +30,7 @@ namespace Orleans.Providers.EntityFramework
 
         internal bool IsConfigured { get; set; }
 
-        internal bool PreCompileReadQuery { get; set; } = false;
+        internal bool PreCompileReadQuery { get; set; } = true;
     }
 
     public class GrainStorageOptions<TContext, TGrain, TGrainState> : GrainStorageOptions

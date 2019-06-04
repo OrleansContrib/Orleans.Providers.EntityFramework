@@ -72,7 +72,96 @@ namespace Orleans.Providers.EntityFramework.Conventions
                 GrainStorageOptions<TContext, TGrain, TGrainState> options)
             where TContext : DbContext
         {
-            throw new NotImplementedException();
+            if (typeof(IGrainWithGuidKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.GuidKeySelector == null)
+                    throw new GrainStorageConfigurationException($"GuidKeySelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+
+                return (TContext context, IAddressable grainRef) =>
+                {
+                    Guid key = grainRef.GetPrimaryKey();
+                    return options.DbSetAccessor(context)
+                        .SingleOrDefaultAsync(
+                            state => options.GuidKeySelector(state) == key);
+                };
+            }
+
+            if (typeof(IGrainWithGuidCompoundKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.GuidKeySelector == null)
+                    throw new GrainStorageConfigurationException($"GuidKeySelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                if (options.KeyExtSelector == null)
+                    throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+
+                return (TContext context, IAddressable grainRef) =>
+                {
+                    Guid key = grainRef.GetPrimaryKey(out string keyExt);
+                    return
+                        options.DbSetAccessor(context)
+                            .SingleOrDefaultAsync(state =>
+                                options.GuidKeySelector(state) == key
+                                && options.KeyExtSelector(state) == keyExt);
+                };
+            }
+
+            if (typeof(IGrainWithIntegerKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.LongKeySelector == null)
+                    throw new GrainStorageConfigurationException($"LongKeySelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+
+                return (TContext context, IAddressable grainRef) =>
+                {
+                    long key = grainRef.GetPrimaryKeyLong();
+                    return options.DbSetAccessor(context)
+                        .SingleOrDefaultAsync(state => options.LongKeySelector(state) == key);
+
+                };
+            }
+
+            if (typeof(IGrainWithIntegerCompoundKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.LongKeySelector == null)
+                    throw new GrainStorageConfigurationException($"LongKeySelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                if (options.KeyExtSelector == null)
+                    throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+
+                return (TContext context, IAddressable grainRef) =>
+                {
+                    long key = grainRef.GetPrimaryKeyLong(out string keyExt);
+                    return options.DbSetAccessor(context)
+                        .SingleOrDefaultAsync(state =>
+                            options.LongKeySelector(state) == key
+                            && options.KeyExtSelector(state) == keyExt);
+                };
+            }
+
+            if (typeof(IGrainWithStringKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.KeyExtSelector == null)
+                    throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+
+                var compiledQuery = EF.CompileAsyncQuery((TContext context, string keyExt)
+                    => options.DbSetAccessor(context)
+                        .SingleOrDefault(state =>
+                             options.KeyExtSelector(state) == keyExt));
+
+                return (TContext context, IAddressable grainRef) =>
+                {
+                    string keyExt = grainRef.GetPrimaryKeyString();
+                    return options.DbSetAccessor(context)
+                        .SingleOrDefaultAsync(state =>
+                             options.KeyExtSelector(state) == keyExt);
+                };
+            }
+
+            throw new InvalidOperationException($"Unexpected grain type \"{typeof(TGrain).FullName}\"");
         }
 
         public Func<TContext, IAddressable, Task<TGrainState>>
@@ -80,29 +169,123 @@ namespace Orleans.Providers.EntityFramework.Conventions
                 GrainStorageOptions<TContext, TGrain, TGrainState> options)
             where TContext : DbContext
         {
-            throw new NotImplementedException();
+            if (typeof(IGrainWithGuidKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.GuidKeySelector == null)
+                    throw new GrainStorageConfigurationException($"GuidKeySelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+
+
+                var predicate = CreateKeyPredicate<TGrainState, Guid>(options);
+
+                var compiledQuery = EF.CompileAsyncQuery((TContext context, Guid grainKey)
+                    => options.DbSetAccessor(context)
+                        .SingleOrDefault(predicate));
+
+                return (TContext context, IAddressable grainRef) =>
+                {
+                    Guid key = grainRef.GetPrimaryKey();
+                    return compiledQuery(context, key);
+                };
+            }
+
+            if (typeof(IGrainWithGuidCompoundKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.GuidKeySelector == null)
+                    throw new GrainStorageConfigurationException($"GuidKeySelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                if (options.KeyExtSelector == null)
+                    throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+
+                var predicate = CreateCompoundKeyPredicate<TGrainState, Guid>(options);
+
+                var compiledQuery = EF.CompileAsyncQuery((TContext context, Guid grainKey, string grainKeyExt)
+                    => options.DbSetAccessor(context)
+                        .SingleOrDefault(predicate));
+
+                return (TContext context, IAddressable grainRef) =>
+                {
+                    Guid key = grainRef.GetPrimaryKey(out string keyExt);
+                    return compiledQuery(context, key, keyExt);
+                };
+            }
+
+            if (typeof(IGrainWithIntegerKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.LongKeySelector == null)
+                    throw new GrainStorageConfigurationException($"LongKeySelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+
+                var predicate = CreateKeyPredicate<TGrainState, long>(options);
+
+                var compiledQuery = EF.CompileAsyncQuery((TContext context, long grainKey)
+                    => options.DbSetAccessor(context)
+                        .SingleOrDefault(predicate));
+
+                return (TContext context, IAddressable grainRef) =>
+                {
+                    long key = grainRef.GetPrimaryKeyLong();
+                    return compiledQuery(context, key);
+                };
+            }
+
+            if (typeof(IGrainWithIntegerCompoundKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.LongKeySelector == null)
+                    throw new GrainStorageConfigurationException($"LongKeySelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                if (options.KeyExtSelector == null)
+                    throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+
+                var predicate = CreateCompoundKeyPredicate<TGrainState, long>(options);
+
+                var compiledQuery = EF.CompileAsyncQuery((TContext context, long grainKey, string grainKeyExt)
+                    => options.DbSetAccessor(context)
+                        .SingleOrDefault(predicate));
+
+                return (TContext context, IAddressable grainRef) =>
+                {
+                    long key = grainRef.GetPrimaryKeyLong(out string keyExt);
+                    return compiledQuery(context, key, keyExt);
+                };
+            }
+
+            if (typeof(IGrainWithStringKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.KeyExtSelector == null)
+                    throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+
+                var predicate = CreateKeyPredicate<TGrainState, string>(options);
+
+                var compiledQuery = EF.CompileAsyncQuery((TContext context, string grainKey)
+                    => options.DbSetAccessor(context)
+                        .SingleOrDefault(predicate));
+
+                return (TContext context, IAddressable grainRef) =>
+                {
+                    string keyExt = grainRef.GetPrimaryKeyString();
+                    return compiledQuery(context, keyExt);
+                };
+            }
+
+            throw new InvalidOperationException($"Unexpected grain type \"{typeof(TGrain).FullName}\"");
         }
 
         public void SetDefaultKeySelectors<TContext, TGrain, TGrainState>(
             GrainStorageOptions<TContext, TGrain, TGrainState> options)
             where TContext : DbContext
         {
-            throw new NotImplementedException();
-        }
-
-
-
-        #endregion
-
-        #region Query Expressions 
-
-        public virtual Func<IAddressable, Expression<Func<TGrainState, bool>>>
-            CreateDefaultGrainStateQueryExpressionGeneratorFunc<TGrain, TGrainState>(
-                GrainStorageOptions options)
-            where TGrain : Grain<TGrainState>
-            where TGrainState : new()
-        {
             if (options == null) throw new ArgumentNullException(nameof(options));
+
+            if (options.KeyPropertyName == null)
+                options.KeyPropertyName = _options.DefaultGrainKeyPropertyName;
+
+            if (options.KeyExtPropertyName == null)
+                options.KeyExtPropertyName = _options.DefaultGrainKeyExtPropertyName;
+
 
             PropertyInfo idProperty = ReflectionHelper.GetPropertyInfo<TGrainState>(
                 options.KeyPropertyName ?? _options.DefaultGrainKeyPropertyName);
@@ -111,44 +294,20 @@ namespace Orleans.Providers.EntityFramework.Conventions
 
             if (typeof(IGrainWithGuidKey).IsAssignableFrom(typeof(TGrain)))
             {
+                if (options.GuidKeySelector != null)
+                    return;
+
                 if (idType != typeof(Guid))
                     throw new GrainStorageConfigurationException(
                         $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a Guid key " +
                         $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
                         $"is of type {idType.FullName}.");
 
-                return CreateGrainStateQueryExpressionGeneratorFunc<TGrainState>(
-                    grainRef => grainRef.GetPrimaryKey(),
-                    idProperty.Name);
 
+                options.GuidKeySelector = ReflectionHelper.GetAccessorDelegate<TGrainState, Guid>(idProperty);
+                return;
             }
 
-            if (typeof(IGrainWithIntegerKey).IsAssignableFrom(typeof(TGrain)))
-            {
-                if (idType != typeof(long))
-                    throw new GrainStorageConfigurationException(
-                        $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a long key " +
-                        $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
-                        $"is of type {idType.FullName}.");
-
-                return CreateGrainStateQueryExpressionGeneratorFunc<TGrainState>(
-                    grainRef => grainRef.GetPrimaryKeyLong(),
-                    idProperty.Name);
-
-            }
-
-            if (typeof(IGrainWithStringKey).IsAssignableFrom(typeof(TGrain)))
-            {
-                if (idType != typeof(string))
-                    throw new GrainStorageConfigurationException(
-                        $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a string key " +
-                        $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
-                        $"is of type {idType.FullName}.");
-
-                return CreateGrainStateQueryExpressionGeneratorFunc<TGrainState>(
-                grainRef => grainRef.GetPrimaryKeyString(),
-                idProperty.Name);
-            }
 
             if (typeof(IGrainWithGuidCompoundKey).IsAssignableFrom(typeof(TGrain)))
             {
@@ -156,16 +315,38 @@ namespace Orleans.Providers.EntityFramework.Conventions
                     = ReflectionHelper.GetPropertyInfo<TGrainState>(
                         options.KeyExtPropertyName ?? _options.DefaultGrainKeyExtPropertyName);
 
+                if (idType != typeof(Guid))
+                    throw new GrainStorageConfigurationException(
+                        $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a Guid key " +
+                        $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
+                        $"is of type {idType.FullName}.");
+
                 if (keyExtProperty.PropertyType != typeof(string))
                     throw new GrainStorageConfigurationException($"Can not use property \"{keyExtProperty.Name}\" " +
                                         $"on grain state type \"{typeof(TGrainState)}\". " +
                                         "KeyExt property must be of type string.");
 
-                return CreateGrainStateQueryExpressionGeneratorFunc<TGrainState>(
-                    (IAddressable grainRef, out string keyExt) =>
-                        grainRef.GetPrimaryKey(out keyExt),
-                    idProperty.Name,
-                    keyExtProperty.Name);
+                if (options.GuidKeySelector == null)
+                    options.GuidKeySelector = ReflectionHelper.GetAccessorDelegate<TGrainState, Guid>(idProperty);
+                if (options.KeyExtSelector == null)
+                    options.KeyExtSelector = ReflectionHelper.GetAccessorDelegate<TGrainState, string>(keyExtProperty);
+
+                return;
+            }
+
+            if (typeof(IGrainWithIntegerKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.LongKeySelector != null)
+                    return;
+
+                if (idType != typeof(long))
+                    throw new GrainStorageConfigurationException(
+                        $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a long key " +
+                        $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
+                        $"is of type {idType.FullName}.");
+
+                options.LongKeySelector = ReflectionHelper.GetAccessorDelegate<TGrainState, long>(idProperty);
+                return;
             }
 
             if (typeof(IGrainWithIntegerCompoundKey).IsAssignableFrom(typeof(TGrain)))
@@ -179,183 +360,63 @@ namespace Orleans.Providers.EntityFramework.Conventions
                                         $"on grain state type \"{typeof(TGrainState)}\". " +
                                         "KeyExt property must be of type string.");
 
-                return CreateGrainStateQueryExpressionGeneratorFunc<TGrainState>(
-                    (IAddressable grainRef, out string keyExt) =>
-                        grainRef.GetPrimaryKeyLong(out keyExt),
-                    idProperty.Name,
-                    keyExtProperty.Name);
+                if (options.LongKeySelector == null)
+                    options.LongKeySelector = ReflectionHelper.GetAccessorDelegate<TGrainState, long>(idProperty);
+                if (options.KeyExtSelector == null)
+                    options.KeyExtSelector = ReflectionHelper.GetAccessorDelegate<TGrainState, string>(keyExtProperty);
+                return;
             }
 
-            throw new GrainStorageConfigurationException($"Unexpected grain type \"{typeof(TGrain)}\".");
+            if (typeof(IGrainWithStringKey).IsAssignableFrom(typeof(TGrain)))
+            {
+                if (options.KeyExtSelector != null)
+                    return;
+
+                if (idType != typeof(string))
+                    throw new GrainStorageConfigurationException(
+                        $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a string key " +
+                        $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
+                        $"is of type {idType.FullName}.");
+
+                options.KeyExtSelector = ReflectionHelper.GetAccessorDelegate<TGrainState, string>(idProperty);
+                return;
+            }
+
+            throw new InvalidOperationException($"Unexpected grain type \"{typeof(TGrain).FullName}\"");
         }
 
-        #region ValueTypes: long and guid
-
-        public virtual Func<IAddressable, Expression<Func<TGrainState, bool>>>
-            CreateGrainStateQueryExpressionGeneratorFunc<TGrainState>(
-                Func<IAddressable, ValueType> getGrainIdValueTypeFunc,
-                string stateIdPropertyName)
+        private static Expression<Func<TGrainState, bool>> CreateKeyPredicate<TGrainState, TKey>(
+            GrainStorageOptions options,
+            string grainKeyParamName = "__grainKey")
         {
-            if (getGrainIdValueTypeFunc == null) throw new ArgumentNullException(nameof(getGrainIdValueTypeFunc));
-            if (stateIdPropertyName == null) throw new ArgumentNullException(nameof(stateIdPropertyName));
-
-
-            // Create a delegate which executes getGrainIdValueTypeFunc and passes it to the expression generator
-            MethodInfo createExpressionMethodInfo
-                = this.GetType().GetMethod(nameof(CreateValueTypeKeyGrainStateQueryExpressionFuncProxy),
-                    BindingFlags.Static | BindingFlags.Public);
-            if (createExpressionMethodInfo == null)
-                throw new Exception("Impossible");
-
-
-            Tuple<Func<IAddressable, ValueType>, string> target
-                = Tuple.Create(getGrainIdValueTypeFunc, stateIdPropertyName);
-
-            // Create the final delegate
-            var createDelegate = (Func<IAddressable, Expression<Func<TGrainState, bool>>>)
-                Delegate.CreateDelegate(typeof(Func<IAddressable, Expression<Func<TGrainState, bool>>>),
-                    target,
-                    createExpressionMethodInfo.MakeGenericMethod(typeof(TGrainState)));
-
-            return createDelegate;
-        }
-
-        public static Expression<Func<TGrainState, bool>>
-            CreateValueTypeKeyGrainStateQueryExpressionFuncProxy<TGrainState>(
-                Tuple<Func<IAddressable, ValueType>, string> arg,
-                IAddressable grainRef)
-        {
-            ValueType grainId = arg.Item1(grainRef);
-
-            return CreateExpression<TGrainState>(grainId, arg.Item2);
-        }
-
-        #endregion
-
-        #region Compound Types
-
-        public virtual Func<IAddressable, Expression<Func<TGrainState, bool>>>
-            CreateGrainStateQueryExpressionGeneratorFunc<TGrainState>(
-                GetCompoundKeyDelegate getGrainCompoundKeyFunc,
-                string stateIdPropertyName,
-                string stateKeyExtPropertyName)
-        {
-            if (getGrainCompoundKeyFunc == null) throw new ArgumentNullException(nameof(getGrainCompoundKeyFunc));
-            if (stateIdPropertyName == null) throw new ArgumentNullException(nameof(stateIdPropertyName));
-
-            // Create a delegate which executes getGrainCompoundKeyFunc and passes it to the expression generator
-            MethodInfo createExpressionMethodInfo
-                = this.GetType().GetMethod(nameof(CreateValueTypeCompoundKeyGrainStateQueryExpressionFuncProxy),
-                    BindingFlags.Static | BindingFlags.Public);
-            if (createExpressionMethodInfo == null)
-                throw new Exception("Impossible");
-
-            Tuple<GetCompoundKeyDelegate, string, string> target
-                = Tuple.Create(getGrainCompoundKeyFunc, stateIdPropertyName, stateKeyExtPropertyName);
-
-            // Create the final delegate
-            var createDelegate = (Func<IAddressable, Expression<Func<TGrainState, bool>>>)
-                Delegate.CreateDelegate(typeof(Func<IAddressable, Expression<Func<TGrainState, bool>>>),
-                    target,
-                    createExpressionMethodInfo.MakeGenericMethod(typeof(TGrainState)));
-
-            return createDelegate;
-        }
-
-        public static Expression<Func<TGrainState, bool>>
-            CreateValueTypeCompoundKeyGrainStateQueryExpressionFuncProxy<TGrainState>(
-                Tuple<GetCompoundKeyDelegate, string, string> arg,
-                IAddressable grainRef)
-        {
-            ValueType grainId = arg.Item1(grainRef, out string extKey);
-
-            return CreateExpression<TGrainState>(grainId, arg.Item2,
-                extKey, arg.Item3);
-        }
-
-        #endregion
-
-        #region String keys
-
-        public Func<IAddressable, Expression<Func<TGrainState, bool>>>
-            CreateGrainStateQueryExpressionGeneratorFunc<TGrainState>(
-                Func<IAddressable, string> getGrainIdStringFunc,
-                string stateIdPropertyName)
-        {
-            if (getGrainIdStringFunc == null) throw new ArgumentNullException(nameof(getGrainIdStringFunc));
-            if (stateIdPropertyName == null) throw new ArgumentNullException(nameof(stateIdPropertyName));
-
-
-            MethodInfo createExpressionMethodInfo
-                = this.GetType().GetMethod(nameof(CreateStringKeyGrainStateQueryExpressionFuncProxy),
-                    BindingFlags.Static | BindingFlags.Public);
-            if (createExpressionMethodInfo == null)
-                throw new Exception("Impossible");
-
-
-            Tuple<Func<IAddressable, string>, string> target
-                = Tuple.Create(getGrainIdStringFunc, stateIdPropertyName);
-
-            var createDelegate = (Func<IAddressable, Expression<Func<TGrainState, bool>>>)
-                Delegate.CreateDelegate(typeof(Func<IAddressable, Expression<Func<TGrainState, bool>>>),
-                    target,
-                    createExpressionMethodInfo.MakeGenericMethod(typeof(TGrainState)));
-
-            return createDelegate;
-        }
-
-        public static Expression<Func<TGrainState, bool>>
-            CreateStringKeyGrainStateQueryExpressionFuncProxy<TGrainState>(
-                Tuple<Func<IAddressable, string>, string> arg,
-                IAddressable grainRef)
-        {
-            string grainId = arg.Item1(grainRef);
-
-            return CreateExpression<TGrainState>(grainId, arg.Item2);
-        }
-
-        #endregion
-
-        private static Expression<Func<TGrainState, bool>> CreateExpression<TGrainState>(
-            object grainId,
-            string idPropertyName)
-        {
-            if (idPropertyName == null) throw new ArgumentNullException(nameof(idPropertyName));
-
             ParameterExpression stateParam = Expression.Parameter(typeof(TGrainState), "state");
-            Expression idProperty = Expression.Property(stateParam, idPropertyName);
+            ParameterExpression grainKeyParam = Expression.Parameter(typeof(TKey), grainKeyParamName);
+            MemberExpression stateKeyParam = Expression.Property(stateParam, options.KeyPropertyName);
 
+            BinaryExpression equals = Expression.Equal(grainKeyParam, stateKeyParam);
 
-            ConstantExpression grainIdConstant = Expression.Constant(grainId);
-
-            Expression expression = Expression.Equal(idProperty, grainIdConstant);
-
-            return Expression.Lambda<Func<TGrainState, bool>>(expression, stateParam);
+            return Expression.Lambda<Func<TGrainState, bool>>(equals, stateParam);
         }
 
-        private static Expression<Func<TGrainState, bool>> CreateExpression<TGrainState>(
-            object grainId,
-            string idPropertyName,
-            string keyExt,
-            string keyExtPropertyName)
+        private static Expression<Func<TGrainState, bool>> CreateCompoundKeyPredicate<TGrainState, TKey>(
+            GrainStorageOptions options,
+            string grainKeyParamName = "__grainKey",
+            string grainKeyExtParamName = "__grainKeyExt")
         {
-            if (idPropertyName == null) throw new ArgumentNullException(nameof(idPropertyName));
-            if (keyExt == null) throw new ArgumentNullException(nameof(keyExt));
-            if (keyExtPropertyName == null) throw new ArgumentNullException(nameof(keyExtPropertyName));
-
             ParameterExpression stateParam = Expression.Parameter(typeof(TGrainState), "state");
-            Expression idProperty = Expression.Property(stateParam, idPropertyName);
-            Expression keyExtProperty = Expression.Property(stateParam, keyExtPropertyName);
 
+            ParameterExpression grainKeyParam = Expression.Parameter(typeof(TKey), grainKeyParamName);
+            MemberExpression stateKeyParam = Expression.Property(stateParam, options.KeyPropertyName);
 
-            ConstantExpression grainIdConstant = Expression.Constant(grainId);
-            ConstantExpression grainKeyExtConstant = Expression.Constant(keyExt);
+            ParameterExpression grainKeyExtParam = Expression.Parameter(typeof(string), grainKeyExtParamName);
+            MemberExpression stateKeyExtParam = Expression.Property(stateParam, options.KeyExtPropertyName);
 
-            Expression idEqualityExpression = Expression.Equal(idProperty, grainIdConstant);
-            Expression keyExtEqualityExpression = Expression.Equal(keyExtProperty, grainKeyExtConstant);
+            BinaryExpression keyEquals = Expression.Equal(grainKeyParam, stateKeyParam);
+            BinaryExpression keyExtEquals = Expression.Equal(grainKeyExtParam, stateKeyExtParam);
 
-            BinaryExpression expression = Expression.AndAlso(idEqualityExpression, keyExtEqualityExpression);
-            return Expression.Lambda<Func<TGrainState, bool>>(expression, stateParam);
+            BinaryExpression equals = Expression.And(keyEquals, keyExtEquals);
+
+            return Expression.Lambda<Func<TGrainState, bool>>(equals, stateParam);
         }
 
         #endregion

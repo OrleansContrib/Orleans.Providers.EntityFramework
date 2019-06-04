@@ -21,51 +21,10 @@ namespace Orleans.Providers.EntityFramework.Conventions
             where TContext : DbContext
             where TGrainState : class, new();
 
-
-        /// <summary>
-        /// Creates a method that generates an expression to be used by entity framework to
-        /// fetch a single state using default property (Id). The default implementation 
-        /// behaviour is configurable using <see cref="GrainStorageConventionOptions"/>.
-        /// </summary>
-        /// <typeparam name="TGrain"></typeparam>
-        /// <typeparam name="TGrainState"></typeparam>
-        /// <returns></returns>
-        Func<IAddressable, Expression<Func<TGrainState, bool>>>
-            CreateDefaultGrainStateQueryExpressionGeneratorFunc<TGrain, TGrainState>(
-            GrainStorageOptions options)
-            where TGrain : Grain<TGrainState>
-            where TGrainState : new();
-
-        /// <summary>
-        /// Creates a method that generates an expression to be used by entity framework to 
-        /// fetch a single state for a GUID or long keyed grain.
-        /// </summary>
-        /// <typeparam name="TGrainState">Type of grain state</typeparam>
-        /// <param name="getGrainIdFunc">Function returing the Id of the state.</param>
-        /// <param name="stateIdPropertyName">Name of the Id property.</param>
-        /// <returns></returns>
-        Func<IAddressable, Expression<Func<TGrainState, bool>>>
-            CreateGrainStateQueryExpressionGeneratorFunc<TGrainState>(
-                Func<IAddressable, ValueType> getGrainIdFunc,
-                string stateIdPropertyName);
-
-        /// <summary>
-        /// Creates a method that generates an expression to be used by entity framework to 
-        /// fetch a single state for a string keyed grain.
-        /// </summary>
-        /// <typeparam name="TGrainState">Type of grain state</typeparam>
-        /// <param name="getGrainIdFunc">Function returing the Id of the state.</param>
-        /// <param name="stateIdPropertyName">Name of the Id property.</param>
-        /// <returns></returns>
-        Func<IAddressable, Expression<Func<TGrainState, bool>>>
-            CreateGrainStateQueryExpressionGeneratorFunc<TGrainState>(
-                Func<IAddressable, string> getGrainIdFunc,
-                string stateIdPropertyName);
-
         Func<TContext, IAddressable, Task<TGrainState>>
             CreateDefaultReadStateFunc<TContext, TGrain, TGrainState>(
                 GrainStorageOptions<TContext, TGrain, TGrainState> options)
-            where TContext: DbContext;
+            where TContext : DbContext;
 
         Func<TContext, IAddressable, Task<TGrainState>>
             CreatePreCompiledDefaultReadStateFunc<TContext, TGrain, TGrainState>(

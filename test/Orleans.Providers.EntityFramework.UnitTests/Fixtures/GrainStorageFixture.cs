@@ -32,7 +32,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 })
                 .AddSingleton<ITypeResolver, TypeResolver>()
 
-                .AddSingleton<IGrainStorageConvention, GrainStorageConventionV2>()
+                .AddSingleton<IGrainStorageConvention, GrainStorageConvention>()
                 // Simple key grains with default key properties on state model
                 // should work out of the box without configuration.
 

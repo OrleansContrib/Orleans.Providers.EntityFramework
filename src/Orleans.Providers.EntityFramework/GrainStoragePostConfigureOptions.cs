@@ -11,31 +11,32 @@ using Orleans.Runtime;
 
 namespace Orleans.Providers.EntityFramework
 {
-    public class GrainStoragePostConfigureOptions<TContext, TGrain, TGrainState>
-        : IPostConfigureOptions<GrainStorageOptions<TContext, TGrain, TGrainState>>
+    public class GrainStoragePostConfigureOptions<TContext, TGrain, TGrainState, TEntity>
+        : IPostConfigureOptions<GrainStorageOptions<TContext, TGrain, TEntity>>
         where TContext : DbContext
         where TGrain : Grain<TGrainState>
-        where TGrainState : class, new()
+        where TGrainState : new()
+        where TEntity : class
     {
-        public IGrainStorageConvention<TContext, TGrain, TGrainState> Convention { get; }
+        public IGrainStorageConvention<TContext, TGrain, TEntity> Convention { get; }
         public IGrainStorageConvention DefaultConvention { get; }
 
         public GrainStoragePostConfigureOptions(IServiceProvider serviceProvider)
         {
             DefaultConvention =
                 (IGrainStorageConvention)serviceProvider.GetRequiredService(typeof(IGrainStorageConvention));
-            Convention = (IGrainStorageConvention<TContext, TGrain, TGrainState>)
-                serviceProvider.GetService(typeof(IGrainStorageConvention<TContext, TGrain, TGrainState>));
+            Convention = (IGrainStorageConvention<TContext, TGrain, TEntity>)
+                serviceProvider.GetService(typeof(IGrainStorageConvention<TContext, TGrain, TEntity>));
         }
 
-        public void PostConfigure(string name, GrainStorageOptions<TContext, TGrain, TGrainState> options)
+        public void PostConfigure(string name, GrainStorageOptions<TContext, TGrain, TEntity> options)
         {
             if (!string.Equals(name, typeof(TGrain).FullName))
                 throw new Exception("Post configure on wrong grain type.");
 
             if (options.DbSetAccessor == null)
                 options.DbSetAccessor = Convention?.CreateDefaultDbSetAccessorFunc()
-                                    ?? DefaultConvention.CreateDefaultDbSetAccessorFunc<TContext, TGrainState>();
+                                    ?? DefaultConvention.CreateDefaultDbSetAccessorFunc<TContext, TEntity>();
 
 
             if (Convention != null)
@@ -46,7 +47,7 @@ namespace Orleans.Providers.EntityFramework
 
             if (options.IsPersistedFunc == null)
                 options.IsPersistedFunc =
-                    DefaultConvention.CreateIsPersistedFunc<TGrainState>(options);
+                    DefaultConvention.CreateIsPersistedFunc<TEntity>(options);
 
             // Configure ETag
             if (options.ShouldUseETag)
@@ -72,6 +73,16 @@ namespace Orleans.Providers.EntityFramework
                               .CreateDefaultReadStateFunc(options);
                 }
             }
+
+            if (options.SetEntity == null)
+                options.SetEntity =
+                    Convention?.GetSetterFunc()
+                    ?? DefaultConvention.GetSetterFunc<TGrainState, TEntity>();
+
+            if (options.GetEntity == null)
+                options.GetEntity =
+                    Convention?.GetGetterFunc()
+                    ?? DefaultConvention.GetGetterFunc<TGrainState, TEntity>();
 
             DefaultConvention.FindAndConfigureETag(options, options.ShouldUseETag);
 

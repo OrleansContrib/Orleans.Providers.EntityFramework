@@ -55,6 +55,33 @@ namespace Orleans.Providers.EntityFramework.UnitTests
             return TestUpdateAsync<GrainWithStringKey, EntityWithStringKey, string>();
         }
 
+        [Fact]
+        public async Task UpdateCustomGetterGrainState()
+        {
+            var entity = new EntityWithGuidKey();
+            Internal.Utils.StoreGrainState(_serviceProvider, entity);
+            entity.Title += "UPDATED";
+            var state = new GrainStateWrapper<EntityWithGuidKey>()
+            {
+                Value = entity
+            };
+            var grainState = new GrainState<GrainStateWrapper<EntityWithGuidKey>>()
+            {
+                State = state
+            };
+
+            TestGrainReference grainRef
+                = TestGrainReference.Create(entity);
+
+            await _storage.WriteStateAsync(typeof(GrainWithCustomStateGuidKey).FullName,
+                grainRef,
+                grainState
+            );
+
+            Internal.Utils.AssertEntityEqualityVsDb(
+                _serviceProvider, grainState.State?.Value);
+
+        }
 
         private async Task TestUpdateAsync<TGrain, TState, TKey>()
             where TState : Entity<TKey>, new()

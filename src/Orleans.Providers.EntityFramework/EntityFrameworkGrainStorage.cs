@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -14,15 +15,19 @@ namespace Orleans.Providers.EntityFramework
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ITypeResolver _typeResolver;
+        private readonly IEntityTypeResolver _entityTypeResolver;
 
         private readonly ConcurrentDictionary<string, IGrainStorage> _storage
             = new ConcurrentDictionary<string, IGrainStorage>();
 
         public EntityFrameworkGrainStorage(
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            ITypeResolver typeResolver,
+            IEntityTypeResolver entityTypeResolver)
         {
             _serviceProvider = serviceProvider;
-            _typeResolver = serviceProvider.GetRequiredService<ITypeResolver>();
+            _entityTypeResolver = entityTypeResolver;
+            _typeResolver = typeResolver;
         }
 
         public Task ReadStateAsync(string grainType, GrainReference grainReference, IGrainState grainState)
@@ -53,15 +58,13 @@ namespace Orleans.Providers.EntityFramework
             string grainType
             , IGrainState grainState)
         {
-            // todo: hack, the declared type of the grain state is only accessible like so
-            Type stateType = grainState.GetType().IsGenericType
-                ? grainState.GetType().GenericTypeArguments[0]
-                : grainState.State.GetType();
-
             Type grainImplType = _typeResolver.ResolveType(grainType);
+            Type stateType = _entityTypeResolver.ResolveStateType(grainType, grainState);
+            Type entityType = _entityTypeResolver.ResolveEntityType(grainType, grainState);
 
-            Type storageType = typeof(GrainStorage<,,>)
-                .MakeGenericType(typeof(TContext), grainImplType, stateType);
+            Type storageType = typeof(GrainStorage<,,,>)
+                .MakeGenericType(typeof(TContext),
+                    grainImplType, stateType, entityType);
 
             IGrainStorage storage;
 

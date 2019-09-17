@@ -25,58 +25,70 @@ namespace Orleans.Providers.EntityFramework.Conventions
             _options = options.Value;
         }
 
+        public virtual Action<IGrainState, TEntity> GetSetterFunc<TGrainState, TEntity>() where TEntity : class
+        {
+            return (state, entity) => state.State = entity;
+        }
+
+        public virtual Func<IGrainState, TEntity> GetGetterFunc<TGrainState, TEntity>() where TEntity : class
+        {
+            return state => state.State as TEntity;
+        }
+
+
         #region Default Query
 
-        public virtual Func<TContext, IQueryable<TGrainState>> CreateDefaultDbSetAccessorFunc<TContext, TGrainState>()
+        public virtual Func<TContext, IQueryable<TEntity>> CreateDefaultDbSetAccessorFunc<TContext, TEntity>()
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TEntity : class
         {
             Type contextType = typeof(TContext);
 
-            // Find a dbSet<TGrainState> as default
+            // Find a dbSet<TEntity> as default
             PropertyInfo dbSetPropertyInfo =
                 contextType
                     .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .FirstOrDefault(pInfo => pInfo.PropertyType == typeof(DbSet<TGrainState>));
+                    .FirstOrDefault(pInfo => pInfo.PropertyType == typeof(DbSet<TEntity>));
 
             if (dbSetPropertyInfo == null)
-                throw new GrainStorageConfigurationException($"Could not find A property of type \"{typeof(DbSet<TGrainState>).FullName}\" " +
+                throw new GrainStorageConfigurationException($"Could not find A property of type \"{typeof(DbSet<TEntity>).FullName}\" " +
                                     $"on context with type \"{typeof(TContext).FullName}\"");
 
-            var dbSetDelegate = (Func<TContext, IQueryable<TGrainState>>)Delegate.CreateDelegate(
-                typeof(Func<TContext, IQueryable<TGrainState>>),
+            var dbSetDelegate = (Func<TContext, IQueryable<TEntity>>)Delegate.CreateDelegate(
+                typeof(Func<TContext, IQueryable<TEntity>>),
                 null,
                 dbSetPropertyInfo.GetMethod);
 
             // set queries as no tracking
-            MethodInfo noTrackingMethodInfo = (this.GetType().GetMethod(nameof(AsNoTracking))
+            MethodInfo noTrackingMethodInfo = (typeof(GrainStorageConvention).GetMethod(nameof(AsNoTracking))
                                         ?? throw new Exception("Impossible"))
-                .MakeGenericMethod(typeof(TContext), typeof(TGrainState));
+                .MakeGenericMethod(typeof(TContext), typeof(TEntity));
 
             // create final delegate which chains dbSet getter and no tracking delegates
-            return (Func<TContext, IQueryable<TGrainState>>)Delegate.CreateDelegate(
-                typeof(Func<TContext, IQueryable<TGrainState>>),
+            return (Func<TContext, IQueryable<TEntity>>)Delegate.CreateDelegate(
+                typeof(Func<TContext, IQueryable<TEntity>>),
                 dbSetDelegate,
                 noTrackingMethodInfo);
         }
 
-        public static IQueryable<TGrainState> AsNoTracking<TContext, TGrainState>(
-            Func<TContext, IQueryable<TGrainState>> func,
+        public static IQueryable<TEntity> AsNoTracking<TContext, TEntity>(
+            Func<TContext, IQueryable<TEntity>> func,
             TContext context)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TEntity : class, new()
             => func(context).AsNoTracking();
 
-        public Func<TContext, IAddressable, Task<TGrainState>>
-            CreateDefaultReadStateFunc<TContext, TGrain, TGrainState>(
-                GrainStorageOptions<TContext, TGrain, TGrainState> options)
+        public virtual Func<TContext, IAddressable, Task<TEntity>>
+            CreateDefaultReadStateFunc<TContext, TGrain, TEntity>(
+                GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (typeof(IGrainWithGuidKey).IsAssignableFrom(typeof(TGrain)))
             {
                 if (options.GuidKeySelector == null)
                     throw new GrainStorageConfigurationException($"GuidKeySelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
                 return (TContext context, IAddressable grainRef) =>
                 {
@@ -91,10 +103,10 @@ namespace Orleans.Providers.EntityFramework.Conventions
             {
                 if (options.GuidKeySelector == null)
                     throw new GrainStorageConfigurationException($"GuidKeySelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
                 if (options.KeyExtSelector == null)
                     throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
                 return (TContext context, IAddressable grainRef) =>
                 {
@@ -111,7 +123,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             {
                 if (options.LongKeySelector == null)
                     throw new GrainStorageConfigurationException($"LongKeySelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
                 return (TContext context, IAddressable grainRef) =>
                 {
@@ -126,10 +138,10 @@ namespace Orleans.Providers.EntityFramework.Conventions
             {
                 if (options.LongKeySelector == null)
                     throw new GrainStorageConfigurationException($"LongKeySelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
                 if (options.KeyExtSelector == null)
                     throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
                 return (TContext context, IAddressable grainRef) =>
                 {
@@ -145,7 +157,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             {
                 if (options.KeyExtSelector == null)
                     throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
                 var compiledQuery = EF.CompileAsyncQuery((TContext context, string keyExt)
                     => options.DbSetAccessor(context)
@@ -164,19 +176,20 @@ namespace Orleans.Providers.EntityFramework.Conventions
             throw new InvalidOperationException($"Unexpected grain type \"{typeof(TGrain).FullName}\"");
         }
 
-        public Func<TContext, IAddressable, Task<TGrainState>>
-            CreatePreCompiledDefaultReadStateFunc<TContext, TGrain, TGrainState>(
-                GrainStorageOptions<TContext, TGrain, TGrainState> options)
+        public virtual Func<TContext, IAddressable, Task<TEntity>>
+            CreatePreCompiledDefaultReadStateFunc<TContext, TGrain, TEntity>(
+                GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (typeof(IGrainWithGuidKey).IsAssignableFrom(typeof(TGrain)))
             {
                 if (options.GuidKeySelector == null)
                     throw new GrainStorageConfigurationException($"GuidKeySelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
 
-                var predicate = CreateKeyPredicate<TGrainState, Guid>(options);
+                var predicate = CreateKeyPredicate<TEntity, Guid>(options);
 
                 var compiledQuery = EF.CompileAsyncQuery((TContext context, Guid grainKey)
                     => options.DbSetAccessor(context)
@@ -193,12 +206,12 @@ namespace Orleans.Providers.EntityFramework.Conventions
             {
                 if (options.GuidKeySelector == null)
                     throw new GrainStorageConfigurationException($"GuidKeySelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
                 if (options.KeyExtSelector == null)
                     throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
-                var predicate = CreateCompoundKeyPredicate<TGrainState, Guid>(options);
+                var predicate = CreateCompoundKeyPredicate<TEntity, Guid>(options);
 
                 var compiledQuery = EF.CompileAsyncQuery((TContext context, Guid grainKey, string grainKeyExt)
                     => options.DbSetAccessor(context)
@@ -215,9 +228,9 @@ namespace Orleans.Providers.EntityFramework.Conventions
             {
                 if (options.LongKeySelector == null)
                     throw new GrainStorageConfigurationException($"LongKeySelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
-                var predicate = CreateKeyPredicate<TGrainState, long>(options);
+                var predicate = CreateKeyPredicate<TEntity, long>(options);
 
                 var compiledQuery = EF.CompileAsyncQuery((TContext context, long grainKey)
                     => options.DbSetAccessor(context)
@@ -234,12 +247,12 @@ namespace Orleans.Providers.EntityFramework.Conventions
             {
                 if (options.LongKeySelector == null)
                     throw new GrainStorageConfigurationException($"LongKeySelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
                 if (options.KeyExtSelector == null)
                     throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
-                var predicate = CreateCompoundKeyPredicate<TGrainState, long>(options);
+                var predicate = CreateCompoundKeyPredicate<TEntity, long>(options);
 
                 var compiledQuery = EF.CompileAsyncQuery((TContext context, long grainKey, string grainKeyExt)
                     => options.DbSetAccessor(context)
@@ -256,9 +269,9 @@ namespace Orleans.Providers.EntityFramework.Conventions
             {
                 if (options.KeyExtSelector == null)
                     throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
-                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TGrainState>).FullName}");
+                                                                 $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
-                var predicate = CreateKeyPredicate<TGrainState, string>(options);
+                var predicate = CreateKeyPredicate<TEntity, string>(options);
 
                 var compiledQuery = EF.CompileAsyncQuery((TContext context, string grainKey)
                     => options.DbSetAccessor(context)
@@ -274,9 +287,10 @@ namespace Orleans.Providers.EntityFramework.Conventions
             throw new InvalidOperationException($"Unexpected grain type \"{typeof(TGrain).FullName}\"");
         }
 
-        public void SetDefaultKeySelectors<TContext, TGrain, TGrainState>(
-            GrainStorageOptions<TContext, TGrain, TGrainState> options)
+        public virtual void SetDefaultKeySelectors<TContext, TGrain, TEntity>(
+            GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
 
@@ -287,7 +301,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
                 options.KeyExtPropertyName = _options.DefaultGrainKeyExtPropertyName;
 
 
-            PropertyInfo idProperty = ReflectionHelper.GetPropertyInfo<TGrainState>(
+            PropertyInfo idProperty = ReflectionHelper.GetPropertyInfo<TEntity>(
                 options.KeyPropertyName ?? _options.DefaultGrainKeyPropertyName);
 
             Type idType = idProperty.PropertyType;
@@ -300,11 +314,11 @@ namespace Orleans.Providers.EntityFramework.Conventions
                 if (idType != typeof(Guid))
                     throw new GrainStorageConfigurationException(
                         $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a Guid key " +
-                        $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
+                        $"but the type {typeof(TEntity).FullName}.{idProperty.Name} " +
                         $"is of type {idType.FullName}.");
 
 
-                options.GuidKeySelector = ReflectionHelper.GetAccessorDelegate<TGrainState, Guid>(idProperty);
+                options.GuidKeySelector = ReflectionHelper.GetAccessorDelegate<TEntity, Guid>(idProperty);
                 return;
             }
 
@@ -312,24 +326,24 @@ namespace Orleans.Providers.EntityFramework.Conventions
             if (typeof(IGrainWithGuidCompoundKey).IsAssignableFrom(typeof(TGrain)))
             {
                 PropertyInfo keyExtProperty
-                    = ReflectionHelper.GetPropertyInfo<TGrainState>(
+                    = ReflectionHelper.GetPropertyInfo<TEntity>(
                         options.KeyExtPropertyName ?? _options.DefaultGrainKeyExtPropertyName);
 
                 if (idType != typeof(Guid))
                     throw new GrainStorageConfigurationException(
                         $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a Guid key " +
-                        $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
+                        $"but the type {typeof(TEntity).FullName}.{idProperty.Name} " +
                         $"is of type {idType.FullName}.");
 
                 if (keyExtProperty.PropertyType != typeof(string))
                     throw new GrainStorageConfigurationException($"Can not use property \"{keyExtProperty.Name}\" " +
-                                        $"on grain state type \"{typeof(TGrainState)}\". " +
+                                        $"on grain state type \"{typeof(TEntity)}\". " +
                                         "KeyExt property must be of type string.");
 
                 if (options.GuidKeySelector == null)
-                    options.GuidKeySelector = ReflectionHelper.GetAccessorDelegate<TGrainState, Guid>(idProperty);
+                    options.GuidKeySelector = ReflectionHelper.GetAccessorDelegate<TEntity, Guid>(idProperty);
                 if (options.KeyExtSelector == null)
-                    options.KeyExtSelector = ReflectionHelper.GetAccessorDelegate<TGrainState, string>(keyExtProperty);
+                    options.KeyExtSelector = ReflectionHelper.GetAccessorDelegate<TEntity, string>(keyExtProperty);
 
                 return;
             }
@@ -342,28 +356,28 @@ namespace Orleans.Providers.EntityFramework.Conventions
                 if (idType != typeof(long))
                     throw new GrainStorageConfigurationException(
                         $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a long key " +
-                        $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
+                        $"but the type {typeof(TEntity).FullName}.{idProperty.Name} " +
                         $"is of type {idType.FullName}.");
 
-                options.LongKeySelector = ReflectionHelper.GetAccessorDelegate<TGrainState, long>(idProperty);
+                options.LongKeySelector = ReflectionHelper.GetAccessorDelegate<TEntity, long>(idProperty);
                 return;
             }
 
             if (typeof(IGrainWithIntegerCompoundKey).IsAssignableFrom(typeof(TGrain)))
             {
                 PropertyInfo keyExtProperty
-                    = ReflectionHelper.GetPropertyInfo<TGrainState>(
+                    = ReflectionHelper.GetPropertyInfo<TEntity>(
                         options.KeyExtPropertyName ?? _options.DefaultGrainKeyExtPropertyName);
 
                 if (keyExtProperty.PropertyType != typeof(string))
                     throw new GrainStorageConfigurationException($"Can not use property \"{keyExtProperty.Name}\" " +
-                                        $"on grain state type \"{typeof(TGrainState)}\". " +
+                                        $"on grain state type \"{typeof(TEntity)}\". " +
                                         "KeyExt property must be of type string.");
 
                 if (options.LongKeySelector == null)
-                    options.LongKeySelector = ReflectionHelper.GetAccessorDelegate<TGrainState, long>(idProperty);
+                    options.LongKeySelector = ReflectionHelper.GetAccessorDelegate<TEntity, long>(idProperty);
                 if (options.KeyExtSelector == null)
-                    options.KeyExtSelector = ReflectionHelper.GetAccessorDelegate<TGrainState, string>(keyExtProperty);
+                    options.KeyExtSelector = ReflectionHelper.GetAccessorDelegate<TEntity, string>(keyExtProperty);
                 return;
             }
 
@@ -375,35 +389,35 @@ namespace Orleans.Providers.EntityFramework.Conventions
                 if (idType != typeof(string))
                     throw new GrainStorageConfigurationException(
                         $"Incompatible grain and state. \"{typeof(TGrain).FullName}\" expects a string key " +
-                        $"but the type {typeof(TGrainState).FullName}.{idProperty.Name} " +
+                        $"but the type {typeof(TEntity).FullName}.{idProperty.Name} " +
                         $"is of type {idType.FullName}.");
 
-                options.KeyExtSelector = ReflectionHelper.GetAccessorDelegate<TGrainState, string>(idProperty);
+                options.KeyExtSelector = ReflectionHelper.GetAccessorDelegate<TEntity, string>(idProperty);
                 return;
             }
 
             throw new InvalidOperationException($"Unexpected grain type \"{typeof(TGrain).FullName}\"");
         }
 
-        private static Expression<Func<TGrainState, bool>> CreateKeyPredicate<TGrainState, TKey>(
+        private static Expression<Func<TEntity, bool>> CreateKeyPredicate<TEntity, TKey>(
             GrainStorageOptions options,
             string grainKeyParamName = "__grainKey")
         {
-            ParameterExpression stateParam = Expression.Parameter(typeof(TGrainState), "state");
+            ParameterExpression stateParam = Expression.Parameter(typeof(TEntity), "state");
             ParameterExpression grainKeyParam = Expression.Parameter(typeof(TKey), grainKeyParamName);
             MemberExpression stateKeyParam = Expression.Property(stateParam, options.KeyPropertyName);
 
             BinaryExpression equals = Expression.Equal(grainKeyParam, stateKeyParam);
 
-            return Expression.Lambda<Func<TGrainState, bool>>(equals, stateParam);
+            return Expression.Lambda<Func<TEntity, bool>>(equals, stateParam);
         }
 
-        private static Expression<Func<TGrainState, bool>> CreateCompoundKeyPredicate<TGrainState, TKey>(
+        private static Expression<Func<TEntity, bool>> CreateCompoundKeyPredicate<TEntity, TKey>(
             GrainStorageOptions options,
             string grainKeyParamName = "__grainKey",
             string grainKeyExtParamName = "__grainKeyExt")
         {
-            ParameterExpression stateParam = Expression.Parameter(typeof(TGrainState), "state");
+            ParameterExpression stateParam = Expression.Parameter(typeof(TEntity), "state");
 
             ParameterExpression grainKeyParam = Expression.Parameter(typeof(TKey), grainKeyParamName);
             MemberExpression stateKeyParam = Expression.Property(stateParam, options.KeyPropertyName);
@@ -416,7 +430,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
 
             BinaryExpression equals = Expression.And(keyEquals, keyExtEquals);
 
-            return Expression.Lambda<Func<TGrainState, bool>>(equals, stateParam);
+            return Expression.Lambda<Func<TEntity, bool>>(equals, stateParam);
         }
 
         #endregion
@@ -427,12 +441,13 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// Creates a method that tests the value of the Id property to default of its type.
         /// </summary>
         /// <param name="options"></param>
-        /// <typeparam name="TGrainState"></typeparam>
+        /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
-        public virtual Func<TGrainState, bool> CreateIsPersistedFunc<TGrainState>(GrainStorageOptions options)
+        public virtual Func<TEntity, bool> CreateIsPersistedFunc<TEntity>(GrainStorageOptions options)
+            where TEntity : class
         {
             PropertyInfo idProperty
-                = ReflectionHelper.GetPropertyInfo<TGrainState>(
+                = ReflectionHelper.GetPropertyInfo<TEntity>(
                     options.PersistenceCheckPropertyName ?? _options.DefaultPersistenceCheckPropertyName);
 
             if (!idProperty.CanRead)
@@ -440,7 +455,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
                     $"Property \"{idProperty.Name}\" of type \"{idProperty.PropertyType.FullName}\" " +
                     "must have a public getter.");
 
-            MethodInfo methodInfo = this.GetType().GetMethod(
+            MethodInfo methodInfo = typeof(GrainStorageConvention).GetMethod(
                 idProperty.PropertyType.IsValueType
                     ? nameof(IsNotDefaultValueType)
                     : nameof(IsNotDefaultReferenceType),
@@ -448,21 +463,21 @@ namespace Orleans.Providers.EntityFramework.Conventions
             if (methodInfo == null)
                 throw new Exception("Impossible");
 
-            return (Func<TGrainState, bool>)
-                Delegate.CreateDelegate(typeof(Func<TGrainState, bool>),
+            return (Func<TEntity, bool>)
+                Delegate.CreateDelegate(typeof(Func<TEntity, bool>),
                     idProperty,
-                    methodInfo.MakeGenericMethod(typeof(TGrainState), idProperty.PropertyType));
+                    methodInfo.MakeGenericMethod(typeof(TEntity), idProperty.PropertyType));
         }
 
-        public static bool IsNotDefaultValueType<TGrainState, TProperty>(
-            PropertyInfo propertyInfo, TGrainState state)
+        public static bool IsNotDefaultValueType<TEntity, TProperty>(
+            PropertyInfo propertyInfo, TEntity state)
             where TProperty : struct
         {
             return !((TProperty)propertyInfo.GetValue(state)).Equals(default(TProperty));
         }
 
-        public static bool IsNotDefaultReferenceType<TGrainState, TProperty>(
-            PropertyInfo propertyInfo, TGrainState state)
+        public static bool IsNotDefaultReferenceType<TEntity, TProperty>(
+            PropertyInfo propertyInfo, TEntity state)
             where TProperty : class
         {
             return !((TProperty)propertyInfo.GetValue(state)).Equals(default(TProperty));
@@ -472,10 +487,11 @@ namespace Orleans.Providers.EntityFramework.Conventions
 
         #region ETag
 
-        public void FindAndConfigureETag<TContext, TGrain, TGrainState>(
-            GrainStorageOptions<TContext, TGrain, TGrainState> options,
+        public virtual void FindAndConfigureETag<TContext, TGrain, TEntity>(
+            GrainStorageOptions<TContext, TGrain, TEntity> options,
             bool throwIfNotFound)
             where TContext : DbContext
+            where TEntity : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
 
@@ -483,21 +499,22 @@ namespace Orleans.Providers.EntityFramework.Conventions
             {
                 var context = scope.ServiceProvider.GetRequiredService<TContext>();
 
-                IEntityType entityType = context.Model.FindEntityType(typeof(TGrainState));
+                IEntityType entityType = context.Model.FindEntityType(typeof(TEntity));
 
                 if (entityType == null)
                     return;
 
                 if (!FindAndConfigureETag(entityType, options) && throwIfNotFound)
                     throw new GrainStorageConfigurationException(
-                        $"Could not find a valid ETag property on type \"{typeof(TGrainState).FullName}\".");
+                        $"Could not find a valid ETag property on type \"{typeof(TEntity).FullName}\".");
             }
         }
 
-        public void ConfigureETag<TContext, TGrain, TGrainState>(
+        public virtual void ConfigureETag<TContext, TGrain, TEntity>(
             string propertyName,
-            GrainStorageOptions<TContext, TGrain, TGrainState> options)
+            GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
             if (options == null) throw new ArgumentNullException(nameof(options));
@@ -506,7 +523,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             {
                 var context = scope.ServiceProvider.GetRequiredService<TContext>();
 
-                IEntityType entityType = context.Model.FindEntityType(typeof(TGrainState));
+                IEntityType entityType = context.Model.FindEntityType(typeof(TEntity));
 
                 if (entityType == null)
                     return;
@@ -515,10 +532,11 @@ namespace Orleans.Providers.EntityFramework.Conventions
             }
         }
 
-        private static bool FindAndConfigureETag<TContext, TGrain, TGrainState>(
+        private static bool FindAndConfigureETag<TContext, TGrain, TEntity>(
             IEntityType entityType,
-            GrainStorageOptions<TContext, TGrain, TGrainState> options)
+            GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (entityType == null) throw new ArgumentNullException(nameof(entityType));
             if (options == null) throw new ArgumentNullException(nameof(options));
@@ -539,11 +557,12 @@ namespace Orleans.Providers.EntityFramework.Conventions
         }
 
 
-        private static void ConfigureETag<TContext, TGrain, TGrainState>(
+        private static void ConfigureETag<TContext, TGrain, TEntity>(
             IEntityType entityType,
             string propertyName,
-            GrainStorageOptions<TContext, TGrain, TGrainState> options)
+            GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (entityType == null) throw new ArgumentNullException(nameof(entityType));
             if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
@@ -553,16 +572,17 @@ namespace Orleans.Providers.EntityFramework.Conventions
 
             if (property == null)
                 throw new GrainStorageConfigurationException(
-                    $"Property {propertyName} on model{typeof(TGrainState).FullName} not found.");
+                    $"Property {propertyName} on model{typeof(TEntity).FullName} not found.");
 
             ConfigureETag(property, options);
         }
 
 
-        private static void ConfigureETag<TContext, TGrain, TGrainState>(
+        private static void ConfigureETag<TContext, TGrain, TEntity>(
             IProperty property,
-            GrainStorageOptions<TContext, TGrain, TGrainState> options)
+            GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (property == null) throw new ArgumentNullException(nameof(property));
 
@@ -574,17 +594,17 @@ namespace Orleans.Providers.EntityFramework.Conventions
             options.ETagProperty = property;
             options.ETagType = property.ClrType;
 
-            options.GetETagFunc = CreateGetETagFunc<TGrainState>(property.Name);
+            options.GetETagFunc = CreateGetETagFunc<TEntity>(property.Name);
             options.ConvertETagObjectToStringFunc
                 = CreateConvertETagObjectToStringFunc();
         }
 
-        private static Func<TGrainState, string> CreateGetETagFunc<TGrainState>(string propertyName)
+        private static Func<TEntity, string> CreateGetETagFunc<TEntity>(string propertyName)
         {
-            PropertyInfo propertyInfo = ReflectionHelper.GetPropertyInfo<TGrainState>(propertyName);
+            PropertyInfo propertyInfo = ReflectionHelper.GetPropertyInfo<TEntity>(propertyName);
 
-            var getterDelegate = (Func<TGrainState, object>)Delegate.CreateDelegate(
-                typeof(Func<TGrainState, object>),
+            var getterDelegate = (Func<TEntity, object>)Delegate.CreateDelegate(
+                typeof(Func<TEntity, object>),
                 null,
                 propertyInfo.GetMethod);
 

@@ -35,6 +35,7 @@ namespace Orleans.Providers.EntityFramework
 
     public class GrainStorageOptions<TContext, TGrain, TEntity> : GrainStorageOptions
         where TContext : DbContext
+        where TEntity : class
     {
         internal Func<TContext, IQueryable<TEntity>> DbSetAccessor { get; set; }
 
@@ -49,5 +50,9 @@ namespace Orleans.Providers.EntityFramework
         internal Func<TEntity, long> LongKeySelector { get; set; }
 
         internal Func<TContext, IAddressable, Task<TEntity>> ReadStateAsync { get; set; }
+
+        internal Action<IGrainState, TEntity> SetEntity { get; set; }
+
+        internal Func<IGrainState, TEntity> GetEntity { get; set; }
     }
 }

@@ -25,6 +25,17 @@ namespace Orleans.Providers.EntityFramework.Conventions
             _options = options.Value;
         }
 
+        public virtual Action<IGrainState, TEntity> GetSetterFunc<TGrainState, TEntity>() where TEntity : class
+        {
+            return (state, entity) => state.State = entity;
+        }
+
+        public virtual Func<IGrainState, TEntity> GetGetterFunc<TGrainState, TEntity>() where TEntity : class
+        {
+            return state => state.State as TEntity;
+        }
+
+
         #region Default Query
 
         public virtual Func<TContext, IQueryable<TEntity>> CreateDefaultDbSetAccessorFunc<TContext, TEntity>()
@@ -49,7 +60,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
                 dbSetPropertyInfo.GetMethod);
 
             // set queries as no tracking
-            MethodInfo noTrackingMethodInfo = (this.GetType().GetMethod(nameof(AsNoTracking))
+            MethodInfo noTrackingMethodInfo = (typeof(GrainStorageConvention).GetMethod(nameof(AsNoTracking))
                                         ?? throw new Exception("Impossible"))
                 .MakeGenericMethod(typeof(TContext), typeof(TEntity));
 
@@ -67,10 +78,11 @@ namespace Orleans.Providers.EntityFramework.Conventions
             where TEntity : class, new()
             => func(context).AsNoTracking();
 
-        public Func<TContext, IAddressable, Task<TEntity>>
+        public virtual Func<TContext, IAddressable, Task<TEntity>>
             CreateDefaultReadStateFunc<TContext, TGrain, TEntity>(
                 GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (typeof(IGrainWithGuidKey).IsAssignableFrom(typeof(TGrain)))
             {
@@ -164,10 +176,11 @@ namespace Orleans.Providers.EntityFramework.Conventions
             throw new InvalidOperationException($"Unexpected grain type \"{typeof(TGrain).FullName}\"");
         }
 
-        public Func<TContext, IAddressable, Task<TEntity>>
+        public virtual Func<TContext, IAddressable, Task<TEntity>>
             CreatePreCompiledDefaultReadStateFunc<TContext, TGrain, TEntity>(
                 GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (typeof(IGrainWithGuidKey).IsAssignableFrom(typeof(TGrain)))
             {
@@ -274,9 +287,10 @@ namespace Orleans.Providers.EntityFramework.Conventions
             throw new InvalidOperationException($"Unexpected grain type \"{typeof(TGrain).FullName}\"");
         }
 
-        public void SetDefaultKeySelectors<TContext, TGrain, TEntity>(
+        public virtual void SetDefaultKeySelectors<TContext, TGrain, TEntity>(
             GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
 
@@ -430,6 +444,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
         public virtual Func<TEntity, bool> CreateIsPersistedFunc<TEntity>(GrainStorageOptions options)
+            where TEntity : class
         {
             PropertyInfo idProperty
                 = ReflectionHelper.GetPropertyInfo<TEntity>(
@@ -440,7 +455,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
                     $"Property \"{idProperty.Name}\" of type \"{idProperty.PropertyType.FullName}\" " +
                     "must have a public getter.");
 
-            MethodInfo methodInfo = this.GetType().GetMethod(
+            MethodInfo methodInfo = typeof(GrainStorageConvention).GetMethod(
                 idProperty.PropertyType.IsValueType
                     ? nameof(IsNotDefaultValueType)
                     : nameof(IsNotDefaultReferenceType),
@@ -472,10 +487,11 @@ namespace Orleans.Providers.EntityFramework.Conventions
 
         #region ETag
 
-        public void FindAndConfigureETag<TContext, TGrain, TEntity>(
+        public virtual void FindAndConfigureETag<TContext, TGrain, TEntity>(
             GrainStorageOptions<TContext, TGrain, TEntity> options,
             bool throwIfNotFound)
             where TContext : DbContext
+            where TEntity : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
 
@@ -494,10 +510,11 @@ namespace Orleans.Providers.EntityFramework.Conventions
             }
         }
 
-        public void ConfigureETag<TContext, TGrain, TEntity>(
+        public virtual void ConfigureETag<TContext, TGrain, TEntity>(
             string propertyName,
             GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
             if (options == null) throw new ArgumentNullException(nameof(options));
@@ -519,6 +536,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             IEntityType entityType,
             GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (entityType == null) throw new ArgumentNullException(nameof(entityType));
             if (options == null) throw new ArgumentNullException(nameof(options));
@@ -544,6 +562,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             string propertyName,
             GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (entityType == null) throw new ArgumentNullException(nameof(entityType));
             if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
@@ -563,6 +582,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             IProperty property,
             GrainStorageOptions<TContext, TGrain, TEntity> options)
             where TContext : DbContext
+            where TEntity : class
         {
             if (property == null) throw new ArgumentNullException(nameof(property));
 

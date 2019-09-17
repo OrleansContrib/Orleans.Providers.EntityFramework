@@ -51,14 +51,13 @@ namespace Orleans.Providers.EntityFramework
 
         public async Task ReadStateAsync(string grainType, GrainReference grainReference, IGrainState grainState)
         {
-
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
             {
                 TEntity entity = await _options.ReadStateAsync(context, grainReference)
                     .ConfigureAwait(false);
 
-                grainState.State = entity;
+                _options.SetEntity(grainState, entity);
 
                 if (entity != null && _options.CheckForETag)
                     grainState.ETag = _options.GetETagFunc(entity);
@@ -67,13 +66,13 @@ namespace Orleans.Providers.EntityFramework
 
         public async Task WriteStateAsync(string grainType, GrainReference grainReference, IGrainState grainState)
         {
-            var state = (TEntity)grainState.State;
-            bool isPersisted = _options.IsPersistedFunc(state);
+            TEntity entity = _options.GetEntity(grainState);
+            bool isPersisted = _options.IsPersistedFunc(entity);
 
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
             {
-                EntityEntry<TEntity> entry = context.Entry(state);
+                EntityEntry<TEntity> entry = context.Entry(entity);
 
                 if (GrainStorageContext<TEntity>.IsConfigured)
                 {
@@ -92,7 +91,7 @@ namespace Orleans.Providers.EntityFramework
                         .ConfigureAwait(false);
 
                     if (_options.CheckForETag)
-                        grainState.ETag = _options.GetETagFunc(state);
+                        grainState.ETag = _options.GetETagFunc(entity);
                 }
                 catch (DbUpdateConcurrencyException e)
                 {
@@ -110,10 +109,11 @@ namespace Orleans.Providers.EntityFramework
 
         public async Task ClearStateAsync(string grainType, GrainReference grainReference, IGrainState grainState)
         {
+            TEntity entity = _options.GetEntity(grainState);
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
             {
-                EntityEntry<TEntity> entry = context.Entry((TEntity)grainState.State);
+                EntityEntry<TEntity> entry = context.Entry(entity);
 
                 entry.State = EntityState.Deleted;
                 await context.SaveChangesAsync()
@@ -132,10 +132,11 @@ namespace Orleans.Providers.EntityFramework
 
             // Try generating a default options for the grain
 
-            Type optionsType = typeof(GrainStoragePostConfigureOptions<,,>)
+            Type optionsType = typeof(GrainStoragePostConfigureOptions<,,,>)
                 .MakeGenericType(
                     typeof(TContext),
                     typeof(TGrain),
+                    typeof(TGrainState),
                     typeof(TEntity));
 
             var postConfigure = (IPostConfigureOptions<GrainStorageOptions<TContext, TGrain, TEntity>>)

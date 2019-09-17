@@ -15,12 +15,29 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this IServiceCollection services,
             Action<GrainStorageOptions<TContext, TGrain, TEntity>> configureOptions = null)
             where TContext : DbContext
-            where TGrain : Grain
+            where TGrain : Grain<TEntity>
+            where TEntity : class, new()
+        {
+            return services
+                .AddSingleton<IPostConfigureOptions<GrainStorageOptions<TContext, TGrain, TEntity>>,
+                    GrainStoragePostConfigureOptions<TContext, TGrain, TEntity, TEntity>>()
+                .Configure<GrainStorageOptions<TContext, TGrain, TEntity>>(typeof(TGrain).FullName, options =>
+                {
+                    configureOptions?.Invoke(options);
+                });
+        }
+
+        public static IServiceCollection ConfigureGrainStorageOptions<TContext, TGrain, TGrainState, TEntity>(
+            this IServiceCollection services,
+            Action<GrainStorageOptions<TContext, TGrain, TEntity>> configureOptions = null)
+            where TContext : DbContext
+            where TGrain : Grain<TGrainState>
+            where TGrainState : new()
             where TEntity : class
         {
             return services
                 .AddSingleton<IPostConfigureOptions<GrainStorageOptions<TContext, TGrain, TEntity>>,
-                    GrainStoragePostConfigureOptions<TContext, TGrain, TEntity>>()
+                    GrainStoragePostConfigureOptions<TContext, TGrain, TGrainState, TEntity>>()
                 .Configure<GrainStorageOptions<TContext, TGrain, TEntity>>(typeof(TGrain).FullName, options =>
                 {
                     configureOptions?.Invoke(options);

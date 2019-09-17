@@ -24,16 +24,19 @@ namespace Orleans.Providers.EntityFramework.Conventions
         Func<TContext, IAddressable, Task<TEntity>>
             CreateDefaultReadStateFunc<TContext, TGrain, TEntity>(
                 GrainStorageOptions<TContext, TGrain, TEntity> options)
-            where TContext : DbContext;
+            where TContext : DbContext
+            where TEntity : class;
 
         Func<TContext, IAddressable, Task<TEntity>>
             CreatePreCompiledDefaultReadStateFunc<TContext, TGrain, TEntity>(
                 GrainStorageOptions<TContext, TGrain, TEntity> options)
-            where TContext : DbContext;
+            where TContext : DbContext
+            where TEntity : class;
 
         void SetDefaultKeySelectors<TContext, TGrain, TEntity>(
             GrainStorageOptions<TContext, TGrain, TEntity> options)
-            where TContext : DbContext;
+            where TContext : DbContext
+            where TEntity : class;
 
         // todo: support composite key grains
 
@@ -44,7 +47,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
         /// <param name="options"></param>
         /// <typeparam name="TEntity"></typeparam>
         /// <returns></returns>
-        Func<TEntity, bool> CreateIsPersistedFunc<TEntity>(GrainStorageOptions options);
+        Func<TEntity, bool> CreateIsPersistedFunc<TEntity>(GrainStorageOptions options)
+            where TEntity : class;
 
         /// <summary>
         /// Tries to find and configure an ETag property on the state model
@@ -57,7 +61,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
         void FindAndConfigureETag<TContext, TGrain, TEntity>(
             GrainStorageOptions<TContext, TGrain, TEntity> options,
             bool throwIfNotFound)
-            where TContext : DbContext;
+            where TContext : DbContext
+            where TEntity : class;
 
         /// <summary>
         /// Configures the ETag property using the provided property name
@@ -70,7 +75,14 @@ namespace Orleans.Providers.EntityFramework.Conventions
         void ConfigureETag<TContext, TGrain, TEntity>(
             string propertyName,
             GrainStorageOptions<TContext, TGrain, TEntity> options)
-            where TContext : DbContext;
+            where TContext : DbContext
+            where TEntity : class;
+
+        Action<IGrainState, TEntity> GetSetterFunc<TGrainState, TEntity>()
+            where TEntity : class;
+
+        Func<IGrainState, TEntity> GetGetterFunc<TGrainState, TEntity>()
+            where TEntity : class;
     }
 
     public interface IGrainStorageConvention<TContext, TGrain, TEntity>
@@ -102,5 +114,9 @@ namespace Orleans.Providers.EntityFramework.Conventions
              GrainStorageOptions<TContext, TGrain, TEntity> options);
 
         void SetDefaultKeySelector(GrainStorageOptions<TContext, TGrain, TEntity> options);
+
+        Action<IGrainState, TEntity> GetSetterFunc();
+
+        Func<IGrainState, TEntity> GetGetterFunc();
     }
 }

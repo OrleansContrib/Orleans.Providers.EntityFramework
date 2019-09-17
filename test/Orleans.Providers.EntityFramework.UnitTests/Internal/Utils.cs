@@ -59,6 +59,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
             Entity<TKey> expected)
         {
             object actual = FetchEntityFromDb(serviceProvider, expected);
+            Assert.NotSame(expected, actual);
             Assert.Equal(expected, actual);
         }
 
@@ -68,7 +69,8 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
             return StoreGrainState(serviceProvider, new TEntity());
         }
 
-        public static GrainState<TEntity> StoreGrainState<TEntity>(IServiceProvider serviceProvider, TEntity entity)
+        public static GrainState<TEntity> StoreGrainState<TEntity>(
+            IServiceProvider serviceProvider, TEntity entity)
             where TEntity : class, new()
         {
             if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));

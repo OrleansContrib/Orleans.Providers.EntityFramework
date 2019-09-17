@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Orleans.Providers.EntityFramework.Conventions;
 using Orleans.Providers.EntityFramework.Extensions;
 using Orleans.Providers.EntityFramework.UnitTests.Grains;
@@ -46,6 +47,8 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 // Storage
                 .AddEfGrainStorage<TestDbContext>()
                 .AddSingleton<IGrainStorage, EntityFrameworkGrainStorage<TestDbContext>>()
+                .AddSingleton<IGrainStorageConvention, TestGrainStorageConvention>()
+                .AddSingleton<IEntityTypeResolver, TestEntityTypeResolver>()
 
                 .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey2,
                     ConfiguredEntityWithCustomGuidKey>(
@@ -77,6 +80,53 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 // this is required to make sure data are seeded
                 context.Database.EnsureCreated();
             }
+        }
+    }
+
+    public class TestEntityTypeResolver : EntityTypeResolver
+    {
+        public override Type ResolveEntityType(string grainType, IGrainState grainState)
+        {
+            Type stateType = ResolveStateType(grainType, grainState);
+
+            if (stateType == typeof(GrainStateWrapper<EntityWithGuidKey>))
+                return typeof(EntityWithGuidKey);
+
+            return stateType;
+        }
+    }
+
+    public class TestGrainStorageConvention : GrainStorageConvention
+    {
+        public TestGrainStorageConvention(
+            IOptions<GrainStorageConventionOptions> options, IServiceScopeFactory serviceScopeFactory) : base(options, serviceScopeFactory)
+        {
+        }
+
+        public override Func<IGrainState, TEntity> GetGetterFunc<TGrainState, TEntity>()
+        {
+            if (typeof(TGrainState) == typeof(GrainStateWrapper<TEntity>))
+                return state =>
+                    (state.State as GrainStateWrapper<TEntity>)?.Value;
+
+            return stat => stat.State as TEntity;
+        }
+
+        public override Action<IGrainState, TEntity> GetSetterFunc<TGrainState, TEntity>()
+        {
+            if (typeof(TGrainState) == typeof(GrainStateWrapper<TEntity>))
+                return (state, entity) =>
+                {
+                    if (state.State is GrainStateWrapper<TEntity> wrapper)
+                        wrapper.Value = entity;
+                    else
+                        state.State = new GrainStateWrapper<TEntity>()
+                        {
+                            Value = entity
+                        };
+                };
+
+            return (state, entity) => state.State = entity;
         }
     }
 }

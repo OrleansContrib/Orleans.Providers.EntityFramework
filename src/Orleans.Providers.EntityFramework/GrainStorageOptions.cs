@@ -33,21 +33,21 @@ namespace Orleans.Providers.EntityFramework
         internal bool PreCompileReadQuery { get; set; } = true;
     }
 
-    public class GrainStorageOptions<TContext, TGrain, TGrainState> : GrainStorageOptions
+    public class GrainStorageOptions<TContext, TGrain, TEntity> : GrainStorageOptions
         where TContext : DbContext
     {
-        internal Func<TContext, IQueryable<TGrainState>> DbSetAccessor { get; set; }
+        internal Func<TContext, IQueryable<TEntity>> DbSetAccessor { get; set; }
 
-        internal Func<TGrainState, bool> IsPersistedFunc { get; set; }
+        internal Func<TEntity, bool> IsPersistedFunc { get; set; }
 
-        internal Func<TGrainState, string> GetETagFunc { get; set; }
+        internal Func<TEntity, string> GetETagFunc { get; set; }
 
-        internal Func<TGrainState, Guid> GuidKeySelector { get; set; }
+        internal Func<TEntity, Guid> GuidKeySelector { get; set; }
 
-        internal Func<TGrainState, string> KeyExtSelector { get; set; }
+        internal Func<TEntity, string> KeyExtSelector { get; set; }
 
-        internal Func<TGrainState, long> LongKeySelector { get; set; }
+        internal Func<TEntity, long> LongKeySelector { get; set; }
 
-        internal Func<TContext, IAddressable, Task<TGrainState>> ReadStateAsync { get; set; }
+        internal Func<TContext, IAddressable, Task<TEntity>> ReadStateAsync { get; set; }
     }
 }

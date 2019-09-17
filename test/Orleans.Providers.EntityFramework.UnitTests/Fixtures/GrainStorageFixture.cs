@@ -25,16 +25,15 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
             var services = new ServiceCollection();
 
             services
+
+                // Entity framework
                 .AddEntityFrameworkInMemoryDatabase()
                 .AddDbContextPool<TestDbContext>(builder =>
                 {
                     builder.UseInMemoryDatabase(Guid.NewGuid().ToString());
                 })
+                // Orleans stuff
                 .AddSingleton<ITypeResolver, TypeResolver>()
-
-                .AddSingleton<IGrainStorageConvention, GrainStorageConvention>()
-                // Simple key grains with default key properties on state model
-                // should work out of the box without configuration.
 
                 .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey,
                     ConfiguredEntityWithCustomGuidKey>(
@@ -43,6 +42,10 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                         options
                             .UseKey(entity => entity.CustomKey);
                     })
+
+                // Storage
+                .AddEfGrainStorage<TestDbContext>()
+                .AddSingleton<IGrainStorage, EntityFrameworkGrainStorage<TestDbContext>>()
 
                 .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey2,
                     ConfiguredEntityWithCustomGuidKey>(
@@ -56,7 +59,6 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                         .UseKey(entity => entity.CustomKey)
                         .UseKeyExt(entity => entity.CustomKeyExt))
 
-                .AddSingleton<IGrainStorage, EntityFrameworkGrainStorage<TestDbContext>>()
                 .Configure<GrainStorageConventionOptions>(options =>
                 {
                     options.DefaultGrainKeyPropertyName = nameof(EntityWithGuidKey.Id);

@@ -75,7 +75,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             Func<TContext, IQueryable<TEntity>> func,
             TContext context)
             where TContext : DbContext
-            where TEntity : class, new()
+            where TEntity : class 
             => func(context).AsNoTracking();
 
         public virtual Func<TContext, IAddressable, Task<TEntity>>

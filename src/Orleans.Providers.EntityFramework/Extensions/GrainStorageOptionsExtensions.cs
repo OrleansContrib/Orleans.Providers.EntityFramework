@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -15,7 +14,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Func<TContext, IQueryable<TGrainState>> queryFunc)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             options.DbSetAccessor = queryFunc;
             return options;
@@ -25,7 +24,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Func<TGrainState, bool> isPersistedFunc)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             options.IsPersistedFunc = isPersistedFunc;
             return options;
@@ -46,7 +45,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             bool value = true)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             options.PreCompileReadQuery = value;
             return options;
@@ -66,7 +65,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Func<TContext, IAddressable, Task<TGrainState>> readStateAsyncFunc)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
 
@@ -87,7 +86,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
         public static GrainStorageOptions<TContext, TGrain, TGrainState> UseETag<TContext, TGrain, TGrainState>(
             this GrainStorageOptions<TContext, TGrain, TGrainState> options)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             options.ShouldUseETag = true;
             return options;
@@ -97,7 +96,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, TProperty>> expression)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -116,7 +115,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             string propertyName)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
@@ -131,7 +130,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, Guid>> expression)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -149,7 +148,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, long>> expression)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -167,7 +166,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, string>> expression)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -185,7 +184,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             string propertyName)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
@@ -199,7 +198,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, string>> expression)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -217,7 +216,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             string propertyName)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
@@ -231,7 +230,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             Expression<Func<TGrainState, TProperty>> expression)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
@@ -249,7 +248,7 @@ namespace Orleans.Providers.EntityFramework.Extensions
             this GrainStorageOptions<TContext, TGrain, TGrainState> options,
             string propertyName)
             where TContext : DbContext
-            where TGrainState : class, new()
+            where TGrainState : class
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));

@@ -72,17 +72,17 @@ namespace Orleans.Providers.EntityFramework
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
             {
-                EntityEntry<TEntity> entry = context.Entry(entity);
-
                 if (GrainStorageContext<TEntity>.IsConfigured)
                 {
+                    EntityEntry<TEntity> entry = context.Entry(entity);
                     GrainStorageContext<TEntity>.ConfigureStateDelegate(entry);
                 }
                 else
                 {
-                    entry.State = isPersisted
-                        ? EntityState.Modified
-                        : EntityState.Added;
+                    if (isPersisted)
+                        context.Update(entity);
+                    else
+                        context.Add(entity);
                 }
 
                 try
@@ -115,7 +115,7 @@ namespace Orleans.Providers.EntityFramework
             {
                 EntityEntry<TEntity> entry = context.Entry(entity);
 
-                entry.State = EntityState.Deleted;
+                context.Remove(entry);
                 await context.SaveChangesAsync()
                     .ConfigureAwait(false);
             }

@@ -23,16 +23,7 @@ namespace Orleans.Providers.EntityFramework
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<GrainStorage<TContext, TGrain, TGrainState, TEntity>> _logger;
         private readonly IServiceProvider _serviceProvider;
-
-        public GrainStorage(
-            GrainStorageOptions<TContext, TGrain, TEntity> options,
-            IServiceScopeFactory serviceScopeFactory,
-            ILogger<GrainStorage<TContext, TGrain, TGrainState, TEntity>> logger)
-        {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
-            _scopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly IGrainStateEntryConfigurator<TContext, TGrain, TEntity> _entryConfigurator;
 
         public GrainStorage(string grainType, IServiceProvider serviceProvider)
         {
@@ -40,6 +31,9 @@ namespace Orleans.Providers.EntityFramework
 
             _serviceProvider = serviceProvider
                                ?? throw new ArgumentNullException(nameof(serviceProvider));
+
+            _entryConfigurator = (IGrainStateEntryConfigurator<TContext, TGrain, TEntity>)serviceProvider.GetRequiredService(
+                typeof(IGrainStateEntryConfigurator<TContext, TGrain, TEntity>));
 
             var loggerFactory = _serviceProvider.GetService<ILoggerFactory>();
             _logger = loggerFactory?.CreateLogger<GrainStorage<TContext, TGrain, TGrainState, TEntity>>()
@@ -67,7 +61,6 @@ namespace Orleans.Providers.EntityFramework
         public async Task WriteStateAsync(string grainType, GrainReference grainReference, IGrainState grainState)
         {
             TEntity entity = _options.GetEntity(grainState);
-            bool isPersisted = _options.IsPersistedFunc(entity);
 
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
@@ -79,10 +72,14 @@ namespace Orleans.Providers.EntityFramework
                 }
                 else
                 {
-                    if (isPersisted)
-                        context.Update(entity);
-                    else
-                        context.Add(entity);
+                    bool isPersisted = _options.IsPersistedFunc(entity);
+
+                    _entryConfigurator.ConfigureSaveEntry(
+                        new ConfigureSaveEntryContext<TContext, TEntity>(
+                            context, entity)
+                        {
+                            IsPersisted = isPersisted
+                        });
                 }
 
                 try
@@ -113,9 +110,7 @@ namespace Orleans.Providers.EntityFramework
             using (IServiceScope scope = _scopeFactory.CreateScope())
             using (var context = scope.ServiceProvider.GetRequiredService<TContext>())
             {
-                EntityEntry<TEntity> entry = context.Entry(entity);
-
-                context.Remove(entry);
+                context.Remove(entity);
                 await context.SaveChangesAsync()
                     .ConfigureAwait(false);
             }

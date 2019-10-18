@@ -51,6 +51,8 @@ namespace Orleans.Providers.EntityFramework.Extensions
         {
             services.TryAddSingleton(typeof(IEntityTypeResolver), typeof(EntityTypeResolver));
             services.TryAddSingleton(typeof(IGrainStorageConvention), typeof(GrainStorageConvention));
+            services.TryAddSingleton(typeof(IGrainStateEntryConfigurator<,,>),
+                typeof(DefaultGrainStateEntryConfigurator<,,>));
             services.AddSingleton(typeof(EntityFrameworkGrainStorage<TContext>));
 
             services.TryAddSingleton<IGrainStorage>(sp =>

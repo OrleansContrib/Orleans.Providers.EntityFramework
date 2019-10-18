@@ -34,17 +34,6 @@ namespace Orleans.Providers.EntityFramework
             if (!string.Equals(name, typeof(TGrain).FullName))
                 throw new Exception("Post configure on wrong grain type.");
 
-            if (options.DbSetAccessor == null)
-                options.DbSetAccessor = Convention?.CreateDefaultDbSetAccessorFunc()
-                                    ?? DefaultConvention.CreateDefaultDbSetAccessorFunc<TContext, TEntity>();
-
-
-            if (Convention != null)
-                Convention.SetDefaultKeySelector(options);
-            else
-                DefaultConvention.SetDefaultKeySelectors(options);
-
-
             if (options.IsPersistedFunc == null)
                 options.IsPersistedFunc =
                     DefaultConvention.CreateIsPersistedFunc<TEntity>(options);
@@ -58,6 +47,15 @@ namespace Orleans.Providers.EntityFramework
 
             if (options.ReadStateAsync == null)
             {
+                if (options.DbSetAccessor == null)
+                    options.DbSetAccessor = Convention?.CreateDefaultDbSetAccessorFunc()
+                                        ?? DefaultConvention.CreateDefaultDbSetAccessorFunc<TContext, TEntity>();
+
+                if (Convention != null)
+                    Convention.SetDefaultKeySelector(options);
+                else
+                    DefaultConvention.SetDefaultKeySelectors(options);
+
                 if (options.PreCompileReadQuery)
                 {
                     options.ReadStateAsync

@@ -1,6 +1,8 @@
-﻿namespace Orleans.Providers.EntityFramework.UnitTests.Internal
+﻿using System;
+
+namespace Orleans.Providers.EntityFramework.UnitTests.Internal
 {
-    public class GrainState<T> : IGrainState
+    public class TestGrainState<T> : IGrainState
         where T : class, new()
     {
         public T State;
@@ -9,6 +11,8 @@
             get => State;
             set => State = value as T;
         }
+
+        public Type Type => typeof(TestGrainState<T>);
 
         public string ETag { get; set; }
     }

@@ -63,13 +63,13 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
             Assert.Equal(expected, actual);
         }
 
-        public static GrainState<TEntity> CreateAndStoreGrainState<TEntity>(IServiceProvider serviceProvider)
+        public static TestGrainState<TEntity> CreateAndStoreGrainState<TEntity>(IServiceProvider serviceProvider)
             where TEntity : class, new()
         {
             return StoreGrainState(serviceProvider, new TEntity());
         }
 
-        public static GrainState<TEntity> StoreGrainState<TEntity>(
+        public static TestGrainState<TEntity> StoreGrainState<TEntity>(
             IServiceProvider serviceProvider, TEntity entity)
             where TEntity : class, new()
         {
@@ -83,7 +83,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
                 d.IsPersisted = true;
                 context.Add(entity);
                 context.SaveChanges();
-                return new GrainState<TEntity>
+                return new TestGrainState<TEntity>
                 {
                     State = entity
                 };

@@ -14,11 +14,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="dotnet-xunit"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory"/>
-    <PackageReference Include="microsoft.orleans.core.abstractions"/>
-    <PackageReference Include="xunit"/>
+    <PackageReference Include="dotnet-xunit" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="microsoft.orleans.core.abstractions" />
+    <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.reporters" />
     <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>

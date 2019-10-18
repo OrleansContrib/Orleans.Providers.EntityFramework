@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <OrleansVersion>2.0.0</OrleansVersion>
+    <OrleansVersion>3.0.0-rc1</OrleansVersion>
   </PropertyGroup>
 
   <PropertyGroup>

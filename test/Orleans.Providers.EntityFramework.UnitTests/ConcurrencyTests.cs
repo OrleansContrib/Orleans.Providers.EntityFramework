@@ -26,7 +26,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
         [Fact]
         public async Task StateShoudContainETag()
         {
-            GrainState<EntityWithIntegerKeyWithEtag> grainState =
+            TestGrainState<EntityWithIntegerKeyWithEtag> grainState =
                 Internal.Utils.CreateAndStoreGrainState<EntityWithIntegerKeyWithEtag>(_serviceProvider);
 
             TestGrainReference grainRef
@@ -46,7 +46,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
         [Fact]
         public async Task WriteWithETagViolation()
         {
-            GrainState<EntityWithIntegerKeyWithEtag> grainState =
+            TestGrainState<EntityWithIntegerKeyWithEtag> grainState =
                 Internal.Utils.CreateAndStoreGrainState<EntityWithIntegerKeyWithEtag>(_serviceProvider);
 
             TestGrainReference grainRef
@@ -73,7 +73,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
         [Fact]
         public async Task WriteWithETagSuccess()
         {
-            GrainState<EntityWithIntegerKeyWithEtag> grainState =
+            TestGrainState<EntityWithIntegerKeyWithEtag> grainState =
                 Internal.Utils.CreateAndStoreGrainState<EntityWithIntegerKeyWithEtag>(_serviceProvider);
 
             TestGrainReference grainRef
@@ -94,8 +94,8 @@ namespace Orleans.Providers.EntityFramework.UnitTests
         [Fact]
         public async Task ReadTaggedEntityShouldSuccessForNullState()
         {
-            GrainState<EntityWithIntegerKeyWithEtag> grainState =
-                new GrainState<EntityWithIntegerKeyWithEtag>();
+            TestGrainState<EntityWithIntegerKeyWithEtag> grainState =
+                new TestGrainState<EntityWithIntegerKeyWithEtag>();
 
             TestGrainReference grainRef
                 = TestGrainReference.Create<GrainWithIntegerKeyWithEtag>(0);
@@ -110,7 +110,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
         [Fact]
         public async Task ReadTaggedEntityShouldSuccessForNullEtag()
         {
-            GrainState<EntityWithIntegerKeyWithEtag> grainState =
+            TestGrainState<EntityWithIntegerKeyWithEtag> grainState =
                 Internal.Utils.StoreGrainState<EntityWithIntegerKeyWithEtag>(_serviceProvider,
                 new EntityWithIntegerKeyWithEtag
                 {

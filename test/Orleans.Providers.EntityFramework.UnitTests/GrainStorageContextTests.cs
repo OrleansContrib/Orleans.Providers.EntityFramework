@@ -24,7 +24,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
         [Fact]
         public async Task SinglePropertyWrite()
         {
-            GrainState<EntityWithIntegerKey> grainState =
+            TestGrainState<EntityWithIntegerKey> grainState =
                 Internal.Utils.CreateAndStoreGrainState<EntityWithIntegerKey>(_serviceProvider);
 
 

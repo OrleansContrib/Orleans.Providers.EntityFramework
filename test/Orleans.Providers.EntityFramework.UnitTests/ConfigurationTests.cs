@@ -26,7 +26,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
         public async Task ReadConfiguredCustomKeyStateShouldPass()
         {
 
-            GrainState<ConfiguredEntityWithCustomGuidKey> grainState =
+            TestGrainState<ConfiguredEntityWithCustomGuidKey> grainState =
                 Internal.Utils.CreateAndStoreGrainState<ConfiguredEntityWithCustomGuidKey>(_serviceProvider);
 
 
@@ -43,7 +43,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
         public async Task ReadConfiguredCustomKeyStateShouldPassForGrainsWithSameStateType()
         {
 
-            GrainState<ConfiguredEntityWithCustomGuidKey> grainState =
+            TestGrainState<ConfiguredEntityWithCustomGuidKey> grainState =
                 Internal.Utils.CreateAndStoreGrainState<ConfiguredEntityWithCustomGuidKey>(_serviceProvider);
 
 
@@ -61,7 +61,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
         public async Task ReadUnconfiguredCustomKeyStateShouldFail()
         {
 
-            GrainState<UnconfiguredEntityWithCustomGuidKey> grainState =
+            TestGrainState<UnconfiguredEntityWithCustomGuidKey> grainState =
                 Internal.Utils.CreateAndStoreGrainState<UnconfiguredEntityWithCustomGuidKey>(_serviceProvider);
 
             TestGrainReference grainRef
@@ -78,7 +78,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
         public async Task ReadInvalidConfiguredCustomKeyStateShouldFail()
         {
 
-            GrainState<InvalidConfiguredEntityWithCustomGuidKey> grainState =
+            TestGrainState<InvalidConfiguredEntityWithCustomGuidKey> grainState =
                 Internal.Utils.CreateAndStoreGrainState<InvalidConfiguredEntityWithCustomGuidKey>(_serviceProvider);
 
             TestGrainReference grainRef

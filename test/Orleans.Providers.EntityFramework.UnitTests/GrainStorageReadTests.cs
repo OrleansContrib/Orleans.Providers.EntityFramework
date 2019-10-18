@@ -88,7 +88,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
             where TState : Entity<TKey>, new()
             where TGrain : Grain<TState>
         {
-            GrainState<TState> grainState = Internal.Utils.CreateAndStoreGrainState<TState>(_serviceProvider);
+            TestGrainState<TState> grainState = Internal.Utils.CreateAndStoreGrainState<TState>(_serviceProvider);
 
             TestGrainReference grainRef
                 = TestGrainReference.Create(grainState.State);

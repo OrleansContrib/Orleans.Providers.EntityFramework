@@ -1,13 +1,13 @@
 ﻿<Project>
   <ItemGroup>
-    <PackageReference Update="Microsoft.Orleans.Core.Abstractions" Version="2.0.0" />
-    <PackageReference Update="Microsoft.Orleans.Core" Version="2.0.0" />
-    <PackageReference Update="Microsoft.Orleans.Runtime.Abstractions" Version="2.0.0" />
+    <PackageReference Update="Microsoft.Orleans.Core.Abstractions" Version="$(OrleansVersion)" />
+    <PackageReference Update="Microsoft.Orleans.Core" Version="$(OrleansVersion)" />
+    <PackageReference Update="Microsoft.Orleans.Runtime.Abstractions" Version="$(OrleansVersion)" />
 
     <PackageReference Update="Microsoft.EntityFrameworkCore" Version="2.1.2" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.InMemory" Version="2.1.2" />
 
-    <PackageReference Update="Microsoft.Extensions.Options" Version="2.1.1" />
+    <PackageReference Update="Microsoft.Extensions.Options" Version="3.0.0" />
 
     <PackageReference Update="coverlet.msbuild" Version="2.6.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

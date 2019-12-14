@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <OrleansVersion>3.0.0-rc1</OrleansVersion>
+    <OrleansVersion>3.0.0</OrleansVersion>
+    <EntityFrameworkVersion>2.1.2</EntityFrameworkVersion>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -60,7 +60,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
                 Value = entity
             };
 
-            var grainState = new GrainState<GrainStateWrapper<EntityWithGuidKey>>()
+            var grainState = new TestGrainState<GrainStateWrapper<EntityWithGuidKey>>()
             {
                 State = state
             };
@@ -82,7 +82,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
             where TState : Entity<TKey>, new()
             where TGrain : Grain<TState>
         {
-            GrainState<TState> grainState = CreateGrainState<TState>();
+            TestGrainState<TState> grainState = CreateGrainState<TState>();
 
             TestGrainReference grainRef
                 = TestGrainReference.Create(grainState.State);
@@ -95,10 +95,10 @@ namespace Orleans.Providers.EntityFramework.UnitTests
             Internal.Utils.AssertEntityEqualityVsDb(_serviceProvider, grainState.State);
         }
 
-        private static GrainState<TEntity> CreateGrainState<TEntity>()
+        private static TestGrainState<TEntity> CreateGrainState<TEntity>()
             where TEntity : class, new()
         {
-            return new GrainState<TEntity>
+            return new TestGrainState<TEntity>
             {
                 State = new TEntity()
             };

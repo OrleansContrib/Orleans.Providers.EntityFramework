@@ -19,6 +19,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "toys", "toys", "{63DCD853-7064-496F-8077-39093A5F3009}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsole", "toys\TestConsole\TestConsole.csproj", "{F53B1E5B-99E6-4361-A0DF-33FD770FF86E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,10 @@ Global
 		{0DC24449-603D-4F1D-859F-D681B69C07A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DC24449-603D-4F1D-859F-D681B69C07A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DC24449-603D-4F1D-859F-D681B69C07A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F53B1E5B-99E6-4361-A0DF-33FD770FF86E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F53B1E5B-99E6-4361-A0DF-33FD770FF86E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F53B1E5B-99E6-4361-A0DF-33FD770FF86E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F53B1E5B-99E6-4361-A0DF-33FD770FF86E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -40,6 +48,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{34CC2FCC-0231-4F79-9B3B-4FC811C41E2C} = {C4CEBAA9-4D0C-4EB3-B03B-A5CAC10F1DA1}
 		{0DC24449-603D-4F1D-859F-D681B69C07A8} = {1117234D-3829-4D42-9C27-9222349F885A}
+		{F53B1E5B-99E6-4361-A0DF-33FD770FF86E} = {63DCD853-7064-496F-8077-39093A5F3009}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8887B873-7FE4-43B2-B79E-30D18C4E2872}

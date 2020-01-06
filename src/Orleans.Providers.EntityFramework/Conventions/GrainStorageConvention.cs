@@ -75,7 +75,7 @@ namespace Orleans.Providers.EntityFramework.Conventions
             Func<TContext, IQueryable<TEntity>> func,
             TContext context)
             where TContext : DbContext
-            where TEntity : class 
+            where TEntity : class
             => func(context).AsNoTracking();
 
         public virtual Func<TContext, IAddressable, Task<TEntity>>
@@ -188,12 +188,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
                     throw new GrainStorageConfigurationException($"GuidKeySelector is not defined for " +
                                                                  $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
-
-                var predicate = CreateKeyPredicate<TEntity, Guid>(options);
-
-                var compiledQuery = EF.CompileAsyncQuery((TContext context, Guid grainKey)
-                    => options.DbSetAccessor(context)
-                        .SingleOrDefault(predicate));
+                Func<TContext, Guid, Task<TEntity>> compiledQuery
+                    = CreateCompiledQuery<TContext, TGrain, TEntity, Guid>(options);
 
                 return (TContext context, IAddressable grainRef) =>
                 {
@@ -211,11 +207,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
                     throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
                                                                  $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
-                var predicate = CreateCompoundKeyPredicate<TEntity, Guid>(options);
-
-                var compiledQuery = EF.CompileAsyncQuery((TContext context, Guid grainKey, string grainKeyExt)
-                    => options.DbSetAccessor(context)
-                        .SingleOrDefault(predicate));
+                Func<TContext, Guid, string, Task<TEntity>> compiledQuery
+                    = CreateCompiledCompoundQuery<TContext, TGrain, TEntity, Guid>(options);
 
                 return (TContext context, IAddressable grainRef) =>
                 {
@@ -230,11 +223,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
                     throw new GrainStorageConfigurationException($"LongKeySelector is not defined for " +
                                                                  $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
-                var predicate = CreateKeyPredicate<TEntity, long>(options);
-
-                var compiledQuery = EF.CompileAsyncQuery((TContext context, long grainKey)
-                    => options.DbSetAccessor(context)
-                        .SingleOrDefault(predicate));
+                Func<TContext, long, Task<TEntity>> compiledQuery
+                    = CreateCompiledQuery<TContext, TGrain, TEntity, long>(options);
 
                 return (TContext context, IAddressable grainRef) =>
                 {
@@ -252,11 +242,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
                     throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
                                                                  $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
-                var predicate = CreateCompoundKeyPredicate<TEntity, long>(options);
-
-                var compiledQuery = EF.CompileAsyncQuery((TContext context, long grainKey, string grainKeyExt)
-                    => options.DbSetAccessor(context)
-                        .SingleOrDefault(predicate));
+                Func<TContext, long, string, Task<TEntity>> compiledQuery
+                    = CreateCompiledCompoundQuery<TContext, TGrain, TEntity, long>(options);
 
                 return (TContext context, IAddressable grainRef) =>
                 {
@@ -271,11 +258,8 @@ namespace Orleans.Providers.EntityFramework.Conventions
                     throw new GrainStorageConfigurationException($"KeyExtSelector is not defined for " +
                                                                  $"{typeof(GrainStorageOptions<TContext, TGrain, TEntity>).FullName}");
 
-                var predicate = CreateKeyPredicate<TEntity, string>(options);
-
-                var compiledQuery = EF.CompileAsyncQuery((TContext context, string grainKey)
-                    => options.DbSetAccessor(context)
-                        .SingleOrDefault(predicate));
+                Func<TContext, string, Task<TEntity>> compiledQuery
+                    = CreateCompiledQuery<TContext, TGrain, TEntity, string>(options);
 
                 return (TContext context, IAddressable grainRef) =>
                 {
@@ -399,36 +383,90 @@ namespace Orleans.Providers.EntityFramework.Conventions
             throw new InvalidOperationException($"Unexpected grain type \"{typeof(TGrain).FullName}\"");
         }
 
+        private static Func<TContext, TKey, Task<TEntity>> CreateCompiledQuery<TContext, TGrain, TEntity, TKey>(
+                GrainStorageOptions<TContext, TGrain, TEntity> options)
+            where TContext : DbContext
+            where TEntity : class
+        {
+            var contextParameter = Expression.Parameter(typeof(TContext), "context");
+            var keyParameter = Expression.Parameter(typeof(TKey), "grainKey");
+            var predicate = CreateKeyPredicate<TEntity, TKey>(options, keyParameter);
+
+            var queryable = Expression.Call(
+                options.DbSetAccessor.Method,
+                Expression.Constant(options.DbSetAccessor),
+                contextParameter);
+
+            var compiledLambdaBody = Expression.Call(
+                typeof(Queryable).GetMethods().Single(mi =>
+                        mi.Name == nameof(Queryable.SingleOrDefault) && mi.GetParameters().Count() == 2)
+                    .MakeGenericMethod(typeof(TEntity)),
+                queryable,
+                Expression.Quote(predicate));
+
+            var lambdaExpression = Expression.Lambda<Func<TContext, TKey, TEntity>>(
+                compiledLambdaBody, contextParameter, keyParameter);
+
+            return EF.CompileAsyncQuery(lambdaExpression);
+        }
+
         private static Expression<Func<TEntity, bool>> CreateKeyPredicate<TEntity, TKey>(
             GrainStorageOptions options,
-            string grainKeyParamName = "__grainKey")
+            ParameterExpression grainKeyParameter)
         {
             ParameterExpression stateParam = Expression.Parameter(typeof(TEntity), "state");
-            ParameterExpression grainKeyParam = Expression.Parameter(typeof(TKey), grainKeyParamName);
             MemberExpression stateKeyParam = Expression.Property(stateParam, options.KeyPropertyName);
 
-            BinaryExpression equals = Expression.Equal(grainKeyParam, stateKeyParam);
+            BinaryExpression equals = Expression.Equal(grainKeyParameter, stateKeyParam);
 
             return Expression.Lambda<Func<TEntity, bool>>(equals, stateParam);
         }
 
+        private static Func<TContext, TKey, string, Task<TEntity>> CreateCompiledCompoundQuery<TContext, TGrain, TEntity, TKey>(
+                GrainStorageOptions<TContext, TGrain, TEntity> options)
+            where TContext : DbContext
+            where TEntity : class
+        {
+            var contextParameter = Expression.Parameter(typeof(TContext), "context");
+            var keyParameter = Expression.Parameter(typeof(TKey), "grainKey");
+            var keyExtParameter = Expression.Parameter(typeof(string), "grainKeyExt");
+            var predicate = CreateCompoundKeyPredicate<TEntity, TKey>(
+                options,
+                keyParameter,
+                keyExtParameter);
+
+            var queryable = Expression.Call(
+                options.DbSetAccessor.Method,
+                Expression.Constant(options.DbSetAccessor),
+                contextParameter);
+
+            var compiledLambdaBody = Expression.Call(
+                typeof(Queryable).GetMethods().Single(mi =>
+                        mi.Name == nameof(Queryable.SingleOrDefault) && mi.GetParameters().Count() == 2)
+                    .MakeGenericMethod(typeof(TEntity)),
+                queryable,
+                Expression.Quote(predicate));
+
+            var lambdaExpression = Expression.Lambda<Func<TContext, TKey, string, TEntity>>(
+                compiledLambdaBody, contextParameter, keyParameter, keyExtParameter);
+
+            return EF.CompileAsyncQuery(lambdaExpression);
+        }
+
+
         private static Expression<Func<TEntity, bool>> CreateCompoundKeyPredicate<TEntity, TKey>(
             GrainStorageOptions options,
-            string grainKeyParamName = "__grainKey",
-            string grainKeyExtParamName = "__grainKeyExt")
+            ParameterExpression grainKeyParam,
+            ParameterExpression grainKeyExtParam)
         {
             ParameterExpression stateParam = Expression.Parameter(typeof(TEntity), "state");
-
-            ParameterExpression grainKeyParam = Expression.Parameter(typeof(TKey), grainKeyParamName);
             MemberExpression stateKeyParam = Expression.Property(stateParam, options.KeyPropertyName);
-
-            ParameterExpression grainKeyExtParam = Expression.Parameter(typeof(string), grainKeyExtParamName);
             MemberExpression stateKeyExtParam = Expression.Property(stateParam, options.KeyExtPropertyName);
 
-            BinaryExpression keyEquals = Expression.Equal(grainKeyParam, stateKeyParam);
-            BinaryExpression keyExtEquals = Expression.Equal(grainKeyExtParam, stateKeyExtParam);
-
-            BinaryExpression equals = Expression.And(keyEquals, keyExtEquals);
+            BinaryExpression equals = Expression.And(
+                Expression.Equal(grainKeyParam, stateKeyParam),
+                Expression.Equal(grainKeyExtParam, stateKeyExtParam)
+            );
 
             return Expression.Lambda<Func<TEntity, bool>>(equals, stateParam);
         }

@@ -259,6 +259,18 @@ class GenericGrainState<TEntity>
 
 Using a custom `EntityTypeResolver` you can tell the storage `TEntity` is the persistent model.
 
+## Compatibility
+
+The package targets Orleans version 2.0.0 and EFCore 2.1.2 but it's compatible with Orleans 3.x and EFCore 3.x packages (To this day).
+
+You can run tests for a specific version using build parameters:
+
+```c#
+dotnet test /p:ORLEANS_VERSION=3.0.0 /p:EF_VERSION=3.0.0 /p:MSEXT_VERSION=3.0.0
+```
+
+
+
 
 ## Known Issues and Limitations
 

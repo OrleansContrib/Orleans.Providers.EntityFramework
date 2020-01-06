@@ -7,7 +7,11 @@
   <PropertyGroup>
     <OrleansVersion>3.0.0</OrleansVersion>
     <EntityFrameworkVersion>3.1.1</EntityFrameworkVersion>
-    <MSExtVersion>3.1.1</MSExtVersion>
+    <MSExtensionsVersion>3.1.1</MSExtensionsVersion>
+
+    <OrleansVersion Condition="'$(ORLEANS_VERSION)' != ''">$(ORLEANS_VERSION)</OrleansVersion>
+    <EntityFrameworkVersion Condition="'$(EF_VERSION)' != ''">$(EF_VERSION)</EntityFrameworkVersion>
+    <MSExtensionsVersion Condition="'$(MSEXT_VERSION)' != ''">$(MSEXT_VERSION)</MSExtensionsVersion>
   </PropertyGroup>
 
   <PropertyGroup>

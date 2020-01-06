@@ -21,6 +21,7 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.reporters" />
     <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.Extensions.Logging.console" />
   </ItemGroup>
 
   <ItemGroup>

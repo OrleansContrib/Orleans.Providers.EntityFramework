@@ -8,9 +8,9 @@ using Orleans.Runtime;
 
 namespace Orleans.Providers.EntityFramework.UnitTests.Internal
 {
-    internal class TestGrainReference : GrainReference
+    public class TestGrainReference : GrainReference
     {
-        internal enum Category : byte
+        public enum Category : byte
         {
             None = 0,
             SystemTarget = 1,

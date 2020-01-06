@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans.Providers.EntityFramework.Conventions;
 using Orleans.Providers.EntityFramework.Extensions;
@@ -26,12 +27,17 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
             var services = new ServiceCollection();
 
             services
+                .AddLogging(logging => logging
+                    .AddConsole()
+                    .SetMinimumLevel(LogLevel.Trace)
+                )
 
                 // Entity framework
                 .AddEntityFrameworkInMemoryDatabase()
                 .AddDbContextPool<TestDbContext>(builder =>
                 {
                     builder.UseInMemoryDatabase(Guid.NewGuid().ToString());
+                    builder.EnableSensitiveDataLogging();
                 })
                 // Orleans stuff
                 .AddSingleton<ITypeResolver, TypeResolver>()

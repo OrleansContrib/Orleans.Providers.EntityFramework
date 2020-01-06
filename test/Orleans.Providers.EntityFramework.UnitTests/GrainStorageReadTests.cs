@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Providers.EntityFramework.UnitTests.Fixtures;
 using Orleans.Providers.EntityFramework.UnitTests.Grains;
@@ -63,7 +65,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
                 Value = entity
             };
 
-            var grainState = new GrainState<GrainStateWrapper<EntityWithGuidKey>>()
+            var grainState = new TestGrainState<GrainStateWrapper<EntityWithGuidKey>>()
             {
                 State = state
             };

@@ -65,7 +65,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests
             {
                 Value = entity
             };
-            var grainState = new GrainState<GrainStateWrapper<EntityWithGuidKey>>()
+            var grainState = new TestGrainState<GrainStateWrapper<EntityWithGuidKey>>()
             {
                 State = state
             };

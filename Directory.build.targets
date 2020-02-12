@@ -7,7 +7,7 @@
     <PackageReference Update="Microsoft.EntityFrameworkCore" Version="$(EntityFrameworkVersion)" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.InMemory" Version="$(EntityFrameworkVersion)" />
 
-    <PackageReference Update="Microsoft.Extensions.Options" Version="3.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Options" Version="$(MSExtVersion)" />
 
     <PackageReference Update="coverlet.msbuild" Version="2.6.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

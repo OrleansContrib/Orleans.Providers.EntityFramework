@@ -12,11 +12,11 @@ Nuget: https://www.nuget.org/packages/Orleans.Providers.EntityFramework/
 
 or
 
-```dotnet add package Orleans.Providers.EntityFramework --version 0.13.0```
+```dotnet add package Orleans.Providers.EntityFramework --version 0.15.0```
 
 or 
 
-```Install-Package Orleans.Providers.EntityFramework --version 0.13.0```
+```Install-Package Orleans.Providers.EntityFramework --version 0.15.0```
 
 
 And configure the storage provider using SiloHostBuilder:
@@ -261,11 +261,15 @@ Using a custom `EntityTypeResolver` you can tell the storage `TEntity` is the pe
 
 ## Compatibility
 
-The package targets Orleans version 2.0.0 and EFCore 2.1.2 but it's compatible with Orleans 3.x and EFCore 3.x packages (To this day).
+To build for specific dependency versions use:
+
+```
+dotnet test /p:ORLEANS_VERSION=3.0.0 /p:EF_VERSION=3.0.0 /p:MSEXT_VERSION=3.0.0
+```
 
 You can run tests for a specific version using build parameters:
 
-```c#
+```
 dotnet test /p:ORLEANS_VERSION=3.0.0 /p:EF_VERSION=3.0.0 /p:MSEXT_VERSION=3.0.0
 ```
 

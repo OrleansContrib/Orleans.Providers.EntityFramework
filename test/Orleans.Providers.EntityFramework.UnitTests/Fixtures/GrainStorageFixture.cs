@@ -41,39 +41,14 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 })
                 // Orleans stuff
                 .AddSingleton<ITypeResolver, TypeResolver>()
-
-                .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey,
-                    ConfiguredEntityWithCustomGuidKey>(
-                    options =>
-                    {
-                        options
-                            .UseKey(entity => entity.CustomKey);
-                    })
-
                 // Storage
                 .AddEfGrainStorage<TestDbContext>()
                 .AddSingleton<IGrainStorage, EntityFrameworkGrainStorage<TestDbContext>>()
                 .AddSingleton<IGrainStorageConvention, TestGrainStorageConvention>()
-                .AddSingleton<IEntityTypeResolver, TestEntityTypeResolver>()
+                .AddSingleton<IEntityTypeResolver, TestEntityTypeResolver>();
 
-                .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey2,
-                    ConfiguredEntityWithCustomGuidKey>(
-                    options => options
-                        .UseKey(entity => entity.CustomKey)
-                        .UseKeyExt(entity => entity.CustomKeyExt))
 
-                .ConfigureGrainStorageOptions<TestDbContext, InvalidConfiguredGrainWithGuidKey,
-                    InvalidConfiguredEntityWithCustomGuidKey>(
-                    options => options
-                        .UseKey(entity => entity.CustomKey)
-                        .UseKeyExt(entity => entity.CustomKeyExt))
-
-                .Configure<GrainStorageConventionOptions>(options =>
-                {
-                    options.DefaultGrainKeyPropertyName = nameof(EntityWithGuidKey.Id);
-                    options.DefaultGrainKeyExtPropertyName = nameof(EntityWithGuidKey.KeyExt);
-                    options.DefaultPersistenceCheckPropertyName = nameof(EntityWithGuidKey.IsPersisted);
-                });
+            ConfigureGrainStorage(services);
 
             ServiceProvider = services.BuildServiceProvider();
 
@@ -86,6 +61,51 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
                 // this is required to make sure data are seeded
                 context.Database.EnsureCreated();
             }
+        }
+
+        private void ConfigureGrainStorage(IServiceCollection services)
+        {
+            services.ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey,
+                    ConfiguredEntityWithCustomGuidKey>(
+                    options =>
+                    {
+                        options
+                            .UseKey(entity => entity.CustomKey);
+                    })
+                .ConfigureGrainStorageOptions<TestDbContext, ConfiguredGrainWithCustomGuidKey2,
+                    ConfiguredEntityWithCustomGuidKey>(
+                    options => options
+                        .UseKey(entity => entity.CustomKey)
+                        .UseKeyExt(entity => entity.CustomKeyExt)
+                )
+                .ConfigureGrainStorageOptions<TestDbContext, InvalidConfiguredGrainWithGuidKey,
+                    InvalidConfiguredEntityWithCustomGuidKey>(
+                    options => options
+                        .UseKey(entity => entity.CustomKey)
+                        .UseKeyExt(entity => entity.CustomKeyExt))
+                .Configure<GrainStorageConventionOptions>(options =>
+                {
+                    options.DefaultGrainKeyPropertyName = nameof(EntityWithGuidKey.Id);
+                    options.DefaultGrainKeyExtPropertyName = nameof(EntityWithGuidKey.KeyExt);
+                    options.DefaultPersistenceCheckPropertyName = nameof(EntityWithGuidKey.IsPersisted);
+                });
+
+            // No PreCompilation
+            services
+                .ConfigureGrainStorageOptions<TestDbContext, GrainWithGuidKeyNoPreCompile, EntityWithGuidKey>(
+                    options => options.PreCompileReadQuery(false))
+                .ConfigureGrainStorageOptions<TestDbContext, GrainWithGuidCompoundKeyNoPreCompile, EntityWithGuidCompoundKey>(
+                    options => options.PreCompileReadQuery(false))
+                .ConfigureGrainStorageOptions<TestDbContext, GrainWithIntegerKeyNoPreCompile, EntityWithIntegerKey>(
+                    options => options.PreCompileReadQuery(false))
+                .ConfigureGrainStorageOptions<TestDbContext, GrainWithIntegerCompoundKeyNoPreCompile, EntityWithIntegerCompoundKey>(
+                    options => options.PreCompileReadQuery(false))
+                .ConfigureGrainStorageOptions<TestDbContext, GrainWithStringKeyNoPreCompile, EntityWithStringKey>(
+                    options => options.PreCompileReadQuery(false))
+                .ConfigureGrainStorageOptions<TestDbContext, GrainWithCustomStateGuidKeyNoPreCompile, GrainStateWrapper<EntityWithGuidKey>>(
+                    options => options.PreCompileReadQuery(false))
+                ;
+
         }
     }
 
@@ -105,7 +125,8 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Fixtures
     public class TestGrainStorageConvention : GrainStorageConvention
     {
         public TestGrainStorageConvention(
-            IOptions<GrainStorageConventionOptions> options, IServiceScopeFactory serviceScopeFactory) : base(options, serviceScopeFactory)
+            IOptions<GrainStorageConventionOptions> options, IServiceScopeFactory serviceScopeFactory) : base(options,
+            serviceScopeFactory)
         {
         }
 

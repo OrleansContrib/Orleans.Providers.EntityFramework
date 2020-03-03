@@ -43,9 +43,9 @@ namespace Orleans.Providers.EntityFramework
 
         internal Func<TEntity, string> GetETagFunc { get; set; }
 
-        internal Func<TEntity, Guid> GuidKeySelector { get; set; }
+        internal Expression<Func<TEntity, Guid>> GuidKeySelector { get; set; }
 
-        internal Func<TEntity, string> KeyExtSelector { get; set; }
+        internal Expression<Func<TEntity, string>> KeyExtSelector { get; set; }
 
         internal Func<TEntity, long> LongKeySelector { get; set; }
 

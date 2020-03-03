@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Reflection;
 using Orleans.Providers.EntityFramework.Exceptions;
 
-namespace Orleans.Providers.EntityFramework.Utils
+namespace Orleans.Providers.EntityFramework.Internal
 {
     internal static class ReflectionHelper
     {
@@ -32,6 +33,13 @@ namespace Orleans.Providers.EntityFramework.Utils
                 typeof(Func<T, TProperty>),
                 null,
                 pInfo.GetMethod);
+        }
+        public static Expression<Func<T, TProperty>> GetAccessorExpression<T, TProperty>(PropertyInfo pInfo)
+        {
+            ParameterExpression paramExp = Expression.Parameter(typeof(T), "target");
+            MemberExpression propertyExp = Expression.Property(paramExp, pInfo);
+
+            return Expression.Lambda<Func<T, TProperty>>(propertyExp, paramExp);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Orleans.Providers.EntityFramework.Exceptions;
 using Orleans.Runtime;
 using Orleans.Storage;
 
@@ -72,12 +73,8 @@ namespace Orleans.Providers.EntityFramework
             {
                 storage = (IGrainStorage)Activator.CreateInstance(storageType, grainType, _serviceProvider);
             }
-            catch (Exception e)
+            catch (Exception e) when (e.InnerException is GrainStorageConfigurationException)
             {
-                if (e.InnerException == null)
-                    throw;
-                // Unwrap target invocation exception
-
                 throw e.InnerException;
             }
 

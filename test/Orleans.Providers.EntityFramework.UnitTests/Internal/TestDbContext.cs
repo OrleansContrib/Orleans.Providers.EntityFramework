@@ -41,21 +41,25 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
                 .HasConversion<bool>(
                     isPersisted => true,
                     value => true);
+
             builder.Entity<EntityWithGuidCompoundKey>()
                 .Property(e => e.IsPersisted)
                 .HasConversion<bool>(
                     isPersisted => true,
                     value => true);
+
             builder.Entity<EntityWithIntegerKey>()
                 .Property(e => e.IsPersisted)
                 .HasConversion<bool>(
                     isPersisted => true,
                     value => true);
+
             builder.Entity<EntityWithIntegerCompoundKey>()
                 .Property(e => e.IsPersisted)
                 .HasConversion<bool>(
                     isPersisted => true,
                     value => true);
+
             builder.Entity<EntityWithStringKey>()
                 .Property(e => e.IsPersisted)
                 .HasConversion<bool>(
@@ -67,6 +71,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
                 .HasConversion<bool>(
                     isPersisted => true,
                     value => true);
+            
             builder.Entity<EntityWithIntegerKeyWithEtag>()
                 .Property(e => e.ETag)
                 .HasConversion<byte[]>(

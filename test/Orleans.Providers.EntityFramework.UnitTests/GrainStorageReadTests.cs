@@ -86,6 +86,68 @@ namespace Orleans.Providers.EntityFramework.UnitTests
 
         }
 
+        [Fact]
+        public Task ReadGuidKeyStateNoPreCompile()
+        {
+            return TestReadAsync<GrainWithGuidKeyNoPreCompile, EntityWithGuidKey, Guid>();
+        }
+
+        [Fact]
+        public Task ReadGuidCompoundKeyStateNoPreCompile()
+        {
+            return TestReadAsync<GrainWithGuidCompoundKeyNoPreCompile, EntityWithGuidCompoundKey, Guid>();
+        }
+
+        [Fact]
+        public Task ReadIntegerKeyStateNoPreCompile()
+        {
+            return TestReadAsync<GrainWithIntegerKeyNoPreCompile, EntityWithIntegerKey, long>();
+        }
+
+        [Fact]
+        public Task ReadIntegerCompoundKeyStateNoPreCompile()
+        {
+            return TestReadAsync<GrainWithIntegerCompoundKeyNoPreCompile, EntityWithIntegerCompoundKey, long>();
+        }
+
+        [Fact]
+        public Task ReadStringKeyStateNoPreCompile()
+        {
+            return TestReadAsync<GrainWithStringKey, EntityWithStringKey, string>();
+        }
+
+        [Fact]
+        public async Task ReadCustomGetterGrainStateNoPreCompile()
+        {
+            var entity = new EntityWithGuidKey();
+            Internal.Utils.StoreGrainState(_serviceProvider, entity);
+
+            var state = new GrainStateWrapper<EntityWithGuidKey>()
+            {
+                Value = entity
+            };
+
+            var grainState = new TestGrainState<GrainStateWrapper<EntityWithGuidKey>>()
+            {
+                State = state
+            };
+
+            TestGrainReference grainRef
+                = TestGrainReference.Create(entity);
+
+            grainState.State = null;
+
+            await _storage.ReadStateAsync(typeof(GrainWithCustomStateGuidKeyNoPreCompile).FullName,
+                grainRef,
+                grainState
+            );
+
+            Internal.Utils.AssertEntityEqualityVsDb(
+                _serviceProvider,
+                grainState.State?.Value);
+
+        }
+
         private async Task TestReadAsync<TGrain, TState, TKey>()
             where TState : Entity<TKey>, new()
             where TGrain : Grain<TState>

@@ -65,7 +65,7 @@ public class Box {
 }
 ```
 
-_If you use conventions (as described, configuring GrainStorageConventionOptions) you're context should contain DbSets for your models._
+_If you use conventions (as described, configuring GrainStorageConventionOptions) your context should contain DbSets for your models._
 
 ```c#
 public DbSet<Box> Boxes { get; set; }

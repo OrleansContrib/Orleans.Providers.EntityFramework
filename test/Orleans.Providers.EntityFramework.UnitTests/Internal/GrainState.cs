@@ -15,5 +15,6 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Internal
         public Type Type => typeof(TestGrainState<T>);
 
         public string ETag { get; set; }
+        public bool RecordExists { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

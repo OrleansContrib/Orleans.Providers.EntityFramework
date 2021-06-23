@@ -83,7 +83,7 @@ namespace Orleans.Providers.EntityFramework.UnitTests.Models
 
     public class EntityWithIntegerKeyWithEtag : EntityWithIntegerKey
     {
-        [Timestamp]
+        //[Timestamp]
         public byte[] ETag { get; set; } = BitConverter.GetBytes(Random.Next());
 
 

@@ -33,7 +33,7 @@ namespace Orleans.Providers.EntityFramework.Internal
             var compiledLambdaBody = Expression.Call(
                 typeof(EntityFrameworkQueryableExtensions).GetMethods().Single(mi =>
                         mi.Name == nameof(EntityFrameworkQueryableExtensions.SingleOrDefaultAsync) &&
-                        mi.GetParameters().Count() == 3)
+                        mi.GetParameters().Count() == 3 && mi.GetParameters()[1].ParameterType.Name.StartsWith("Expression"))
                     .MakeGenericMethod(typeof(TEntity)),
                 queryable,
                 Expression.Quote(predicate),
@@ -76,7 +76,7 @@ namespace Orleans.Providers.EntityFramework.Internal
             var compiledLambdaBody = Expression.Call(
                 typeof(EntityFrameworkQueryableExtensions).GetMethods().Single(mi =>
                         mi.Name == nameof(EntityFrameworkQueryableExtensions.SingleOrDefaultAsync) &&
-                        mi.GetParameters().Count() == 3)
+                        mi.GetParameters().Count() == 3 && mi.GetParameters()[1].ParameterType.Name.StartsWith("Expression"))
                     .MakeGenericMethod(typeof(TEntity)),
                 queryable,
                 Expression.Quote(predicate),
@@ -105,7 +105,7 @@ namespace Orleans.Providers.EntityFramework.Internal
 
             var compiledLambdaBody = Expression.Call(
                 typeof(Queryable).GetMethods().Single(mi =>
-                        mi.Name == nameof(Queryable.SingleOrDefault) && mi.GetParameters().Count() == 2)
+                        mi.Name == nameof(Queryable.SingleOrDefault) && mi.GetParameters().Count() == 2 && mi.GetParameters()[1].ParameterType.Name.StartsWith("Expression"))
                     .MakeGenericMethod(typeof(TEntity)),
                 queryable,
                 Expression.Quote(predicate));
@@ -149,7 +149,7 @@ namespace Orleans.Providers.EntityFramework.Internal
 
             var compiledLambdaBody = Expression.Call(
                 typeof(Queryable).GetMethods().Single(mi =>
-                        mi.Name == nameof(Queryable.SingleOrDefault) && mi.GetParameters().Count() == 2)
+                        mi.Name == nameof(Queryable.SingleOrDefault) && mi.GetParameters().Count() == 2 && mi.GetParameters()[1].ParameterType.Name.StartsWith("Expression"))
                     .MakeGenericMethod(typeof(TEntity)),
                 queryable,
                 Expression.Quote(predicate));
